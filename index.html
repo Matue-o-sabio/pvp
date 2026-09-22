@@ -1,1 +1,1268 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineQuote Showdown - Adivinhe o Filme pela Frase</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Canvas Confetti for Victory Screen -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#f6d365',
+                            500: '#fda085',
+                            600: '#d4af37',
+                            700: '#aa7c11',
+                            900: '#4a3300'
+                        },
+                        cine: {
+                            dark: '#0f0f13',
+                            card: '#181824',
+                            border: '#2a2a3e',
+                            accent: '#e50914'
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0b0b0f;
+            color: #f3f4f6;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(229, 9, 20, 0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #fff 0%, #f6d365 50%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-border-glow {
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+        }
+
+        .gold-button {
+            background: linear-gradient(135deg, #d4af37 0%, #aa7c11 100%);
+            transition: all 0.3s ease;
+        }
+        .gold-button:hover {
+            background: linear-gradient(135deg, #f6d365 0%, #d4af37 100%);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f0f13;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a2a3e;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d4af37;
+        }
+
+        .pulse-timer {
+            animation: pulse-red 1s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; color: #ef4444; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans selection:bg-gold-600 selection:text-black">
+
+    <!-- Header -->
+    <header class="border-b border-cine-border bg-cine-dark/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer" id="btn-logo-home">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-gold-700 to-gold-400 flex items-center justify-center text-black font-bold text-xl shadow-lg">
+                    <i class="fa-solid fa-film"></i>
+                </div>
+                <div>
+                    <h1 class="font-cinzel text-lg md:text-xl font-bold gold-gradient-text tracking-wider leading-none">CINE QUOTE</h1>
+                    <span class="text-[10px] text-gray-400 tracking-widest uppercase font-semibold">Showdown PvP</span>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center gap-2 md:gap-4">
+                <button id="btn-open-python-modal" class="px-3 py-1.5 text-xs rounded-lg bg-cine-card border border-cine-border hover:border-gold-600/50 text-gray-300 hover:text-white transition flex items-center gap-2">
+                    <i class="fa-brands fa-python text-yellow-500 text-sm"></i>
+                    <span class="hidden md:inline">Server Python</span>
+                </button>
+                <button id="btn-open-guide-modal" class="px-3 py-1.5 text-xs rounded-lg bg-cine-card border border-cine-border hover:border-gold-600/50 text-gray-300 hover:text-white transition flex items-center gap-2">
+                    <i class="fa-brands fa-github text-white text-sm"></i>
+                    <span class="hidden md:inline">Como Hospedar</span>
+                </button>
+
+                <!-- User Profile Badge -->
+                <div class="flex items-center gap-2 bg-cine-card border border-cine-border rounded-full pl-2 pr-3 py-1 cursor-pointer hover:border-gold-600 transition" id="btn-edit-profile">
+                    <div id="user-avatar" class="w-7 h-7 rounded-full bg-gold-600 flex items-center justify-center text-black font-bold text-xs">
+                        🎬
+                    </div>
+                    <span id="user-name-display" class="text-xs font-semibold text-gray-200 max-w-[90px] truncate">Jogador</span>
+                    <i class="fa-solid fa-pen text-[10px] text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 flex flex-col justify-center">
+
+        <!-- Custom Notification Banner -->
+        <div id="notification-toast" class="hidden fixed top-16 right-4 z-50 bg-cine-card border-l-4 border-gold-600 text-white px-4 py-3 rounded shadow-2xl transition-all duration-300 max-w-md flex items-center gap-3">
+            <i id="notification-icon" class="fa-solid fa-circle-info text-gold-500"></i>
+            <span id="notification-text" class="text-xs md:text-sm">Notificação</span>
+        </div>
+
+        <!-- ================= VIEW 1: HOME / JOIN / CREATE ================= -->
+        <div id="view-home" class="space-y-8 py-6">
+            <div class="text-center max-w-2xl mx-auto space-y-4">
+                <span class="px-3 py-1 rounded-full bg-gold-900/40 text-gold-400 text-xs font-semibold uppercase tracking-widest border border-gold-600/30">
+                    <i class="fa-solid fa-clapperboard mr-1"></i> Desafio de Cinema PvP
+                </span>
+                <h2 class="text-3xl md:text-5xl font-cinzel font-black gold-gradient-text tracking-wide">
+                    Quem adivinha o filme primeiro?
+                </h2>
+                <p class="text-gray-400 text-sm md:text-base">
+                    Entre em uma sala com amigos, ouça ou leia citações lendárias do cinema mundial e teste seus conhecimentos em tempo real!
+                </p>
+            </div>
+
+            <!-- Action Grid -->
+            <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                <!-- Create Room Card -->
+                <div class="bg-cine-card border border-cine-border rounded-2xl p-6 flex flex-col justify-between hover:border-gold-600/50 transition-all duration-300 group">
+                    <div class="space-y-4">
+                        <div class="w-12 h-12 rounded-xl bg-gold-600/10 border border-gold-600/30 flex items-center justify-center text-gold-500 text-2xl group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold font-cinzel text-white">Criar Nova Sala</h3>
+                            <p class="text-xs text-gray-400 mt-1">Gere um código de sala exclusivo e convide seus amigos para jogar.</p>
+                        </div>
+
+                        <!-- Room Options -->
+                        <div class="space-y-3 pt-2">
+                            <div>
+                                <label class="text-xs font-semibold text-gray-400 block mb-1">Tempo por Rodada</label>
+                                <select id="select-round-time" class="w-full bg-cine-dark border border-cine-border rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-gold-600">
+                                    <option value="15">15 Segundos (Rápido)</option>
+                                    <option value="25" selected>25 Segundos (Padrão)</option>
+                                    <option value="40">40 Segundos (Relaxado)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-gray-400 block mb-1">Número de Rodadas</label>
+                                <select id="select-max-rounds" class="w-full bg-cine-dark border border-cine-border rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-gold-600">
+                                    <option value="5">5 Filmes</option>
+                                    <option value="8" selected>8 Filmes</option>
+                                    <option value="12">12 Filmes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-create-room" class="mt-6 w-full py-3 rounded-xl gold-button text-black font-bold text-sm tracking-wide flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-door-open"></i> Criar Sala Multiplayer
+                    </button>
+                </div>
+
+                <!-- Join Room Card -->
+                <div class="bg-cine-card border border-cine-border rounded-2xl p-6 flex flex-col justify-between hover:border-gold-600/50 transition-all duration-300 group">
+                    <div class="space-y-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 text-2xl group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold font-cinzel text-white">Entrar em uma Sala</h3>
+                            <p class="text-xs text-gray-400 mt-1">Digite o código de 5 letras fornecido pelo host da sala.</p>
+                        </div>
+
+                        <div class="pt-2">
+                            <label class="text-xs font-semibold text-gray-400 block mb-1">Código da Sala</label>
+                            <input type="text" id="input-room-code" placeholder="Ex: CINE7" uppercase class="w-full bg-cine-dark border border-cine-border rounded-lg px-4 py-2.5 text-center text-lg font-mono font-bold tracking-widest text-gold-400 uppercase focus:outline-none focus:border-gold-600 uppercase" maxlength="6">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 mt-6">
+                        <button id="btn-join-room" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm tracking-wide transition flex items-center justify-center gap-2 shadow-lg">
+                            <i class="fa-solid fa-gamepad"></i> Entrar na Sala
+                        </button>
+                        <button id="btn-solo-bot" class="w-full py-2 rounded-xl border border-cine-border hover:bg-cine-border/40 text-gray-300 text-xs font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-robot text-gold-500"></i> Treinar Solo / Contra CineBot
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 2: LOBBY ================= -->
+        <div id="view-lobby" class="hidden space-y-6 max-w-4xl mx-auto w-full">
+            <!-- Room Header Banner -->
+            <div class="bg-cine-card border border-cine-border rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4 gold-border-glow">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-bold text-gold-500 uppercase tracking-widest">Sala Ativa</span>
+                        <span id="lobby-status-badge" class="px-2 py-0.5 rounded text-[10px] bg-green-900/50 text-green-400 border border-green-500/30">Aguardando Jogadores</span>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-cinzel font-black text-white mt-1">
+                        Código: <span id="lobby-room-code" class="text-gold-400 font-mono underline decoration-gold-600">XXXXX</span>
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-1">Compartilhe este código com quem vai disputar com você!</p>
+                </div>
+
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <button id="btn-copy-code" class="flex-1 md:flex-none px-4 py-2.5 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500 text-gray-200 text-xs font-bold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-copy text-gold-500"></i> Copiar Código
+                    </button>
+                    <button id="btn-leave-room" class="px-4 py-2.5 rounded-xl bg-red-950/40 border border-red-800/50 hover:bg-red-900/60 text-red-300 text-xs font-bold transition">
+                        Sair
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Players List (2 columns wide) -->
+                <div class="md:col-span-2 bg-cine-card border border-cine-border rounded-2xl p-6 space-y-4">
+                    <div class="flex justify-between items-center border-b border-cine-border pb-3">
+                        <h3 class="font-cinzel font-bold text-white text-lg flex items-center gap-2">
+                            <i class="fa-solid fa-users text-gold-500"></i> Jogadores na Sala
+                        </h3>
+                        <span id="lobby-player-count" class="text-xs bg-cine-dark px-3 py-1 rounded-full text-gold-400 font-mono border border-cine-border">1 / 8</span>
+                    </div>
+
+                    <!-- Player Grid -->
+                    <div id="lobby-player-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[160px]">
+                        <!-- Rendered dynamically -->
+                    </div>
+
+                    <!-- Host Controls -->
+                    <div id="host-controls" class="pt-4 border-t border-cine-border flex flex-col sm:flex-row gap-3">
+                        <button id="btn-start-game" class="w-full py-3 rounded-xl gold-button text-black font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg">
+                            <i class="fa-solid fa-play"></i> Iniciar Partida Agora
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lobby Chat Box -->
+                <div class="bg-cine-card border border-cine-border rounded-2xl p-4 flex flex-col h-[320px]">
+                    <div class="border-b border-cine-border pb-2 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-gold-500 text-xs"></i>
+                        <h4 class="font-cinzel text-xs font-bold text-gray-200">Chat da Sala</h4>
+                    </div>
+
+                    <div id="lobby-chat-messages" class="flex-1 overflow-y-auto space-y-2 text-xs pr-1">
+                        <div class="text-gray-500 italic text-[11px] text-center my-2">Bem-vindo ao chat da sala!</div>
+                    </div>
+
+                    <form id="form-lobby-chat" class="mt-2 flex gap-2">
+                        <input type="text" id="input-chat-msg" placeholder="Digite uma mensagem..." class="flex-1 bg-cine-dark border border-cine-border rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-gold-600">
+                        <button type="submit" class="px-3 py-1.5 bg-gold-600 text-black font-bold rounded-lg hover:bg-gold-500 transition">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 3: GAMEPLAY ================= -->
+        <div id="view-game" class="hidden space-y-6 max-w-4xl mx-auto w-full">
+            <!-- Game Top Status Bar -->
+            <div class="bg-cine-card border border-cine-border rounded-2xl p-4 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Rodada</span>
+                        <div class="text-xl font-cinzel font-bold text-gold-400" id="game-round-indicator">1 / 8</div>
+                    </div>
+                    <div class="h-8 w-px bg-cine-border"></div>
+                    <div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">Sua Pontuação</span>
+                        <div class="text-xl font-mono font-bold text-green-400" id="game-my-score">0 pts</div>
+                    </div>
+                </div>
+
+                <!-- Timer Ring/Box -->
+                <div class="flex items-center gap-3">
+                    <button id="btn-speak-quote" title="Ouvir citação com voz" class="w-10 h-10 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500 text-gold-400 flex items-center justify-center transition">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                    <div class="bg-cine-dark border border-cine-border rounded-xl px-4 py-2 text-center min-w-[80px]" id="timer-container">
+                        <span class="text-[9px] font-bold text-gray-400 block uppercase">Tempo</span>
+                        <span id="game-timer" class="text-2xl font-mono font-bold text-gold-400">25</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quote Showcase Box -->
+            <div class="bg-cine-card border border-gold-600/30 rounded-3xl p-6 md:p-10 text-center relative overflow-hidden shadow-2xl gold-border-glow">
+                <div class="absolute -right-10 -bottom-10 opacity-5 text-9xl text-gold-500 pointer-events-none font-serif">“</div>
+
+                <div class="space-y-4 relative z-10">
+                    <span class="inline-block px-3 py-1 rounded-full bg-gold-900/40 text-gold-400 text-xs font-semibold uppercase tracking-wider border border-gold-600/20">
+                        <i class="fa-solid fa-quote-left mr-1"></i> Citação em Português
+                    </span>
+
+                    <h2 id="quote-text-pt" class="text-xl md:text-3xl font-cinzel font-bold text-white leading-relaxed italic px-2">
+                        "Vou fazer uma oferta que ele não poderá recusar."
+                    </h2>
+
+                    <p id="quote-text-en" class="text-xs md:text-sm text-gray-400 italic">
+                        Original: "I'm gonna make him an offer he can't refuse."
+                    </p>
+                </div>
+            </div>
+
+            <!-- Hints Display Box -->
+            <div class="bg-cine-card border border-cine-border rounded-2xl p-5 space-y-3">
+                <div class="flex justify-between items-center border-b border-cine-border pb-2">
+                    <h4 class="font-cinzel text-xs font-bold text-gold-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb"></i> Dicas Reveladas Progressivamente
+                    </h4>
+                    <span class="text-[10px] text-gray-400">Pontos máximos diminuem com o tempo</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div class="bg-cine-dark p-3 rounded-xl border border-cine-border">
+                        <span class="text-gray-500 block text-[10px] uppercase font-bold">Dica 1: Ano & Gênero</span>
+                        <span id="hint-1" class="text-gray-200 font-semibold">🔒 Bloqueado...</span>
+                    </div>
+                    <div class="bg-cine-dark p-3 rounded-xl border border-cine-border">
+                        <span class="text-gray-500 block text-[10px] uppercase font-bold">Dica 2: Elenco Principal</span>
+                        <span id="hint-2" class="text-gray-200 font-semibold">🔒 Bloqueado...</span>
+                    </div>
+                    <div class="bg-cine-dark p-3 rounded-xl border border-cine-border">
+                        <span class="text-gray-500 block text-[10px] uppercase font-bold">Dica 3: Iniciais do Título</span>
+                        <span id="hint-3" class="text-gray-200 font-semibold font-mono">🔒 Bloqueado...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Answer Section -->
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Answer Input Form -->
+                <div class="md:col-span-2 bg-cine-card border border-cine-border rounded-2xl p-5 space-y-4">
+                    <div id="answer-container-text">
+                        <label class="text-xs font-semibold text-gray-300 block mb-2">Qual é o título deste filme?</label>
+                        <form id="form-submit-answer" class="flex gap-2">
+                            <input type="text" id="input-guess" placeholder="Digite o nome do filme..." autocomplete="off" class="flex-1 bg-cine-dark border border-cine-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold-600">
+                            <button type="submit" id="btn-submit-guess" class="px-6 py-3 rounded-xl gold-button text-black font-bold text-sm tracking-wide transition">
+                                Enviar
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Multiple Choice Alternatives Mode (Fallback / Auto-generated) -->
+                    <div id="answer-container-options" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <!-- Rendered dynamically -->
+                    </div>
+
+                    <!-- Feedback message -->
+                    <div id="guess-feedback" class="hidden text-center py-2 text-sm font-bold rounded-xl"></div>
+                </div>
+
+                <!-- Live Scoreboard -->
+                <div class="bg-cine-card border border-cine-border rounded-2xl p-4 flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-cinzel text-xs font-bold text-gray-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-trophy text-gold-500"></i> Placar ao Vivo
+                        </h4>
+                        <div id="live-scoreboard-list" class="space-y-2 text-xs">
+                            <!-- Rendered dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 4: RESULTS / PODIUM ================= -->
+        <div id="view-results" class="hidden space-y-8 max-w-3xl mx-auto w-full text-center py-6">
+            <div class="space-y-2">
+                <span class="text-xs font-bold text-gold-500 uppercase tracking-widest">Fim da Disputa</span>
+                <h2 class="text-4xl md:text-5xl font-cinzel font-black gold-gradient-text">Pódio do Cinema</h2>
+                <p class="text-gray-400 text-sm">Confira os maiores cinéfilos da sala!</p>
+            </div>
+
+            <!-- Podium Stage -->
+            <div id="podium-container" class="flex justify-center items-end gap-3 md:gap-6 pt-10 pb-6 min-h-[260px]">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <!-- Final Leaderboard Table -->
+            <div class="bg-cine-card border border-cine-border rounded-2xl p-6 text-left max-w-xl mx-auto">
+                <h3 class="font-cinzel font-bold text-white text-base border-b border-cine-border pb-3 mb-4">
+                    Classificação Geral
+                </h3>
+                <div id="final-leaderboard-list" class="space-y-3">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-center gap-4">
+                <button id="btn-back-to-home" class="px-8 py-3.5 rounded-xl gold-button text-black font-bold text-sm tracking-wide shadow-xl flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> Jogar Novamente
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal 1: Python Server Code -->
+    <div id="modal-python-server" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cine-card border border-cine-border rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl">
+            <div class="p-5 border-b border-cine-border flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <i class="fa-brands fa-python text-yellow-500 text-2xl"></i>
+                    <div>
+                        <h3 class="font-cinzel font-bold text-white text-lg">Servidor Python (VS Code)</h3>
+                        <p class="text-xs text-gray-400">Código pronto para rodar com Flask-SocketIO</p>
+                    </div>
+                </div>
+                <button class="btn-close-modal text-gray-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-4 text-xs text-gray-300">
+                <p>Se preferir hospedar seu próprio servidor websocket em Python usando o VS Code em vez do Firebase, instale as dependências e rode o script abaixo:</p>
+                <div class="bg-cine-dark p-3 rounded-lg border border-cine-border font-mono text-gold-400">
+                    pip install flask flask-socketio eventlet
+                </div>
+
+                <div class="relative">
+                    <pre class="bg-cine-dark p-4 rounded-xl border border-cine-border font-mono text-[11px] text-green-400 overflow-x-auto leading-relaxed select-all" id="code-python-server">
+# server.py - Servidor WebSocket para CineQuote Showdown
+from flask import Flask, render_template
+from flask_socketio import SocketIO, emit, join_room, leave_room
+import random, string
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'cinequote_secret_key'
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+rooms = {} # Guarda o estado das salas
+
+@socketio.on('create_room')
+def handle_create_room(data):
+    room_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+    rooms[room_code] = {
+        'host': data['username'],
+        'players': {request.sid: {'name': data['username'], 'score': 0, 'ready': True}},
+        'settings': data.get('settings', {'roundTime': 25, 'maxRounds': 8})
+    }
+    join_room(room_code)
+    emit('room_created', {'roomCode': room_code, 'room': rooms[room_code]}, room=room_code)
+
+@socketio.on('join_room')
+def handle_join_room(data):
+    code = data['roomCode'].upper()
+    if code in rooms:
+        join_room(code)
+        rooms[code]['players'][request.sid] = {'name': data['username'], 'score': 0, 'ready': False}
+        emit('player_joined', {'players': rooms[code]['players']}, room=code)
+    else:
+        emit('error', {'message': 'Sala não encontrada!'})
+
+@socketio.on('send_chat')
+def handle_chat(data):
+    emit('new_chat', {'user': data['username'], 'msg': data['message']}, room=data['roomCode'])
+
+if __name__ == '__main__':
+    print("🎬 Servidor CineQuote rodando em http://localhost:5000")
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)</pre>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-cine-border flex justify-end gap-3">
+                <button id="btn-copy-python-code" class="px-4 py-2 bg-gold-600 hover:bg-gold-500 text-black font-bold rounded-xl text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-copy"></i> Copiar Código Python
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: GitHub Pages Guide -->
+    <div id="modal-github-guide" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cine-card border border-cine-border rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl">
+            <div class="p-5 border-b border-cine-border flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <i class="fa-brands fa-github text-white text-2xl"></i>
+                    <div>
+                        <h3 class="font-cinzel font-bold text-white text-lg">Como Publicar no GitHub Pages</h3>
+                        <p class="text-xs text-gray-400">Coloque seu jogo online de graça em 3 minutos</p>
+                    </div>
+                </div>
+                <button class="btn-close-modal text-gray-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-4 text-xs text-gray-300">
+                <ol class="list-decimal list-inside space-y-3 leading-relaxed">
+                    <li>Crie uma conta gratuita em <strong class="text-gold-400">github.com</strong> caso não tenha.</li>
+                    <li>Crie um novo repositório público chamado <code class="bg-cine-dark px-2 py-0.5 rounded text-green-400">meu-jogo-cinema</code>.</li>
+                    <li>Faça o upload deste arquivo nomeando-o exatamente como <code class="bg-cine-dark px-2 py-0.5 rounded text-gold-400">index.html</code> no repositório.</li>
+                    <li>Vá nas configurações do repositório (**Settings** -> **Pages**).</li>
+                    <li>Em **Branch**, selecione <code class="bg-cine-dark px-2 py-0.5 rounded text-white">main</code> (ou `master`) e clique em **Save**.</li>
+                    <li>Aguarde 1 minuto e seu site estará online no link fornecido pelo GitHub! (ex: `https://seu-usuario.github.io/meu-jogo-cinema`).</li>
+                </ol>
+            </div>
+
+            <div class="p-4 border-t border-cine-border flex justify-end">
+                <button class="btn-close-modal px-5 py-2 bg-cine-dark border border-cine-border text-white font-bold rounded-xl text-xs">
+                    Entendi!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="modal-edit-profile" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-cine-card border border-cine-border rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="font-cinzel font-bold text-white text-lg text-center">Editar Seu Perfil</h3>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">Seu Nome / Apelido</label>
+                    <input type="text" id="input-edit-username" class="w-full bg-cine-dark border border-cine-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gold-600" maxlength="14">
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold text-gray-400 block mb-1">Escolha seu Avatar</label>
+                    <div class="grid grid-cols-5 gap-2 text-center text-xl" id="avatar-selector">
+                        <button class="btn-avatar p-2 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500">🎬</button>
+                        <button class="btn-avatar p-2 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500">🍿</button>
+                        <button class="btn-avatar p-2 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500">🏆</button>
+                        <button class="btn-avatar p-2 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500">🕶️</button>
+                        <button class="btn-avatar p-2 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500">🎥</button>
+                    </div>
+                </div>
+            </div>
+
+            <button id="btn-save-profile" class="w-full py-2.5 rounded-xl gold-button text-black font-bold text-xs uppercase tracking-wider">
+                Salvar Alterações
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase Module Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, addDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const MOVIE_QUOTES = [
+            {
+                pt: "Vou fazer uma oferta que ele não poderá recusar.",
+                en: "I'm gonna make him an offer he can't refuse.",
+                title: "O Poderoso Chefão",
+                aliases: ["o poderoso chefao", "godfather", "the godfather"],
+                year: "1972",
+                genre: "Crime / Drama",
+                cast: "Marlon Brando, Al Pacino",
+                initials: "O P C"
+            },
+            {
+                pt: "Que a Força esteja com você.",
+                en: "May the Force be with you.",
+                title: "Star Wars",
+                aliases: ["star wars", "guerra nas estrelas", "star wars episodio iv"],
+                year: "1977",
+                genre: "Ficção Científica",
+                cast: "Mark Hamill, Harrison Ford",
+                initials: "S W"
+            },
+            {
+                pt: "Houston, nós temos um problema.",
+                en: "Houston, we have a problem.",
+                title: "Apollo 13",
+                aliases: ["apollo 13", "apolo 13"],
+                year: "1995",
+                genre: "Aventura / Drama",
+                cast: "Tom Hanks, Kevin Bacon",
+                initials: "A 13"
+            },
+            {
+                pt: "Hasta la vista, baby.",
+                en: "Hasta la vista, baby.",
+                title: "O Exterminador do Futuro 2",
+                aliases: ["o exterminador do futuro 2", "terminator 2", "exterminador do futuro 2"],
+                year: "1991",
+                genre: "Ação / Ficção Científica",
+                cast: "Arnold Schwarzenegger",
+                initials: "O E D F 2"
+            },
+            {
+                pt: "Por que tão sério?",
+                en: "Why so serious?",
+                title: "Batman: O Cavaleiro das Trevas",
+                aliases: ["batman o cavaleiro das trevas", "the dark knight", "batman cavaleiro das trevas"],
+                year: "2008",
+                genre: "Ação / Crime",
+                cast: "Christian Bale, Heath Ledger",
+                initials: "B : O C D T"
+            },
+            {
+                pt: "Ao infinito e além!",
+                en: "To infinity and beyond!",
+                title: "Toy Story",
+                aliases: ["toy story", "toy story 1"],
+                year: "1995",
+                genre: "Animação / Família",
+                cast: "Tom Hanks, Tim Allen (Vozes)",
+                initials: "T S"
+            },
+            {
+                pt: "A primeira regra do Clube da Luta é: você não fala sobre o Clube da Luta.",
+                en: "The first rule of Fight Club is: You do not talk about Fight Club.",
+                title: "Clube da Luta",
+                aliases: ["clube da luta", "fight club"],
+                year: "1999",
+                genre: "Drama / Thriller",
+                cast: "Brad Pitt, Edward Norton",
+                initials: "C D L"
+            },
+            {
+                pt: "Eu vejo pessoas mortas.",
+                en: "I see dead people.",
+                title: "O Sexto Sentido",
+                aliases: ["o sexto sentido", "the sixth sense", "sexto sentido"],
+                year: "1999",
+                genre: "Mistério / Terror",
+                cast: "Bruce Willis, Haley Joel Osment",
+                initials: "O S S"
+            },
+            {
+                pt: "Siga o coelho branco.",
+                en: "Follow the white rabbit.",
+                title: "Matrix",
+                aliases: ["matrix", "the matrix"],
+                year: "1999",
+                genre: "Ficção Científica",
+                cast: "Keanu Reeves, Laurence Fishburne",
+                initials: "M A T R I X"
+            },
+            {
+                pt: "Eu sou o rei do mundo!",
+                en: "I'm the king of the world!",
+                title: "Titanic",
+                aliases: ["titanic"],
+                year: "1997",
+                genre: "Romance / Drama",
+                cast: "Leonardo DiCaprio, Kate Winslet",
+                initials: "T I T A N I C"
+            },
+            {
+                pt: "Com grandes poderes vêm grandes responsabilidades.",
+                en: "With great power comes great responsibility.",
+                title: "Homem-Aranha",
+                aliases: ["homem aranha", "homem-aranha", "spider man", "spiderman"],
+                year: "2002",
+                genre: "Ação / Aventura",
+                cast: "Tobey Maguire, Willem Dafoe",
+                initials: "H - A"
+            },
+            {
+                pt: "Meu precioso...",
+                en: "My precious...",
+                title: "O Senhor dos Anéis",
+                aliases: ["o senhor dos aneis", "lord of the rings", "senhor dos aneis"],
+                year: "2002",
+                genre: "Fantasia / Aventura",
+                cast: "Elijah Wood, Andy Serkis",
+                initials: "O S D A"
+            }
+        ];
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cinequote-app';
+        let firebaseConfig = null;
+        if (typeof __firebase_config !== 'undefined') {
+            try { firebaseConfig = JSON.parse(__firebase_config); } catch(e){}
+        }
+
+        // App State
+        const state = {
+            user: {
+                id: 'usr_' + Math.random().toString(36).substr(2, 6),
+                name: 'Cinéfilo_' + Math.floor(Math.random() * 899 + 100),
+                avatar: '🎬'
+            },
+            mode: 'solo', // 'solo' or 'firebase'
+            roomCode: null,
+            roomData: null,
+            isHost: false,
+            currentRound: 0,
+            score: 0,
+            timerInterval: null,
+            timeLeft: 25,
+            unsubscribeRoom: null,
+            hasGuessedCurrentRound: false
+        };
+
+        // Firebase References
+        let db = null;
+        let auth = null;
+
+        const soundFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            },
+            playTick() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            },
+            playCorrect() {
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.4);
+            }
+        };
+
+        const views = {
+            home: document.getElementById('view-home'),
+            lobby: document.getElementById('view-lobby'),
+            game: document.getElementById('view-game'),
+            results: document.getElementById('view-results')
+        };
+
+        function switchView(target) {
+            Object.keys(views).forEach(k => views[k].classList.add('hidden'));
+            views[target].classList.remove('hidden');
+        }
+
+        function showToast(text, type = 'info') {
+            const toast = document.getElementById('notification-toast');
+            const toastText = document.getElementById('notification-text');
+            toastText.textContent = text;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+
+        async function initFirebase() {
+            if (!firebaseConfig) return false;
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                return true;
+            } catch (err) {
+                console.warn("Firebase Auth fallback to local mode:", err);
+                return false;
+            }
+        }
+
+        function normalizeString(str) {
+            return str.toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9]/g, "").trim();
+        }
+
+        function checkAnswer(userGuess, currentQuote) {
+            const normGuess = normalizeString(userGuess);
+            if (!normGuess) return false;
+
+            const normTitle = normalizeString(currentQuote.title);
+            if (normGuess === normTitle) return true;
+
+            return currentQuote.aliases.some(alias => normalizeString(alias) === normGuess);
+        }
+
+        function startSoloGame() {
+            state.mode = 'solo';
+            state.roomCode = 'SOLO';
+            state.score = 0;
+            state.currentRound = 0;
+            state.isHost = true;
+            
+            // Generate shuffle list
+            state.shuffledQuotes = [...MOVIE_QUOTES].sort(() => Math.random() - 0.5).slice(0, 8);
+            
+            switchView('game');
+            runRoundSolo();
+        }
+
+        function runRoundSolo() {
+            if (state.currentRound >= state.shuffledQuotes.length) {
+                showResultsSolo();
+                return;
+            }
+
+            state.hasGuessedCurrentRound = false;
+            const quote = state.shuffledQuotes[state.currentRound];
+            
+            document.getElementById('game-round-indicator').textContent = `${state.currentRound + 1} / ${state.shuffledQuotes.length}`;
+            document.getElementById('quote-text-pt').textContent = `"${quote.pt}"`;
+            document.getElementById('quote-text-en').textContent = `Original: "${quote.en}"`;
+
+            // Reset hints
+            document.getElementById('hint-1').textContent = "🔒 Bloqueado...";
+            document.getElementById('hint-2').textContent = "🔒 Bloqueado...";
+            document.getElementById('hint-3').textContent = "🔒 Bloqueado...";
+            document.getElementById('input-guess').value = '';
+            document.getElementById('guess-feedback').classList.add('hidden');
+            document.getElementById('btn-submit-guess').disabled = false;
+
+            // Render live scoreboard
+            renderLiveScoreboard([
+                { name: state.user.name, avatar: state.user.avatar, score: state.score },
+                { name: 'CineBot 🤖', avatar: '🤖', score: Math.floor(state.currentRound * 110) }
+            ]);
+
+            // Start Timer
+            clearInterval(state.timerInterval);
+            state.timeLeft = 25;
+            document.getElementById('game-timer').textContent = state.timeLeft;
+
+            state.timerInterval = setInterval(() => {
+                state.timeLeft--;
+                document.getElementById('game-timer').textContent = state.timeLeft;
+                soundFX.playTick();
+
+                // Progress Hints
+                if (state.timeLeft === 18) {
+                    document.getElementById('hint-1').textContent = `${quote.year} | ${quote.genre}`;
+                }
+                if (state.timeLeft === 12) {
+                    document.getElementById('hint-2').textContent = quote.cast;
+                }
+                if (state.timeLeft === 6) {
+                    document.getElementById('hint-3').textContent = quote.initials;
+                }
+
+                if (state.timeLeft <= 0) {
+                    clearInterval(state.timerInterval);
+                    handleTimeOutSolo(quote);
+                }
+            }, 1000);
+        }
+
+        function handleTimeOutSolo(quote) {
+            const feedback = document.getElementById('guess-feedback');
+            feedback.className = "text-center py-2 text-xs font-bold rounded-xl bg-red-900/60 text-red-300 border border-red-700/50";
+            feedback.textContent = `Tempo esgotado! O filme era: "${quote.title}"`;
+            feedback.classList.remove('hidden');
+
+            setTimeout(() => {
+                state.currentRound++;
+                runRoundSolo();
+            }, 3000);
+        }
+
+        function submitGuessSolo(guess) {
+            if (state.hasGuessedCurrentRound) return;
+
+            const quote = state.shuffledQuotes[state.currentRound];
+            const isCorrect = checkAnswer(guess, quote);
+            const feedback = document.getElementById('guess-feedback');
+
+            if (isCorrect) {
+                state.hasGuessedCurrentRound = true;
+                soundFX.playCorrect();
+                const points = Math.max(100, state.timeLeft * 20);
+                state.score += points;
+                document.getElementById('game-my-score').textContent = `${state.score} pts`;
+
+                feedback.className = "text-center py-2 text-xs font-bold rounded-xl bg-green-900/60 text-green-300 border border-green-700/50";
+                feedback.textContent = `🎉 Correto! +${points} pontos!`;
+                feedback.classList.remove('hidden');
+
+                clearInterval(state.timerInterval);
+                document.getElementById('btn-submit-guess').disabled = true;
+
+                setTimeout(() => {
+                    state.currentRound++;
+                    runRoundSolo();
+                }, 2500);
+            } else {
+                feedback.className = "text-center py-2 text-xs font-bold rounded-xl bg-red-900/40 text-red-400 border border-red-800/30";
+                feedback.textContent = `❌ Título incorreto. Tente novamente!`;
+                feedback.classList.remove('hidden');
+            }
+        }
+
+        function showResultsSolo() {
+            switchView('results');
+            if (window.confetti) {
+                window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+
+            const podium = document.getElementById('podium-container');
+            podium.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-gold-600/20 border-2 border-gold-500 flex items-center justify-center text-2xl mb-2">${state.user.avatar}</div>
+                    <span class="text-xs font-bold text-gray-200">${state.user.name}</span>
+                    <div class="w-24 bg-gradient-to-t from-gold-700 to-gold-500 h-32 rounded-t-xl flex items-center justify-center font-bold text-black text-2xl mt-2 shadow-xl">
+                        1º
+                    </div>
+                    <span class="text-xs font-mono font-bold text-gold-400 mt-1">${state.score} pts</span>
+                </div>
+            `;
+
+            document.getElementById('final-leaderboard-list').innerHTML = `
+                <div class="flex justify-between items-center p-2 rounded-lg bg-cine-dark border border-cine-border">
+                    <span class="font-bold text-white text-xs">1. ${state.user.name} ${state.user.avatar}</span>
+                    <span class="font-mono text-gold-400 text-xs font-bold">${state.score} pts</span>
+                </div>
+            `;
+        }
+
+        async function createFirebaseRoom(roundTime, maxRounds) {
+            const hasFb = await initFirebase();
+            if (!hasFb || !db) {
+                showToast("Conexão Firebase não configurada. Entrando no modo Solo local.");
+                startSoloGame();
+                return;
+            }
+
+            const code = Math.random().toString(36).substr(2, 5).toUpperCase();
+            state.roomCode = code;
+            state.isHost = true;
+            state.mode = 'firebase';
+
+            // Firestore Room Collection Path Rule 1
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
+            
+            const initialData = {
+                code: code,
+                host: state.user.id,
+                status: 'LOBBY', // 'LOBBY', 'PLAYING', 'FINISHED'
+                settings: { roundTime: parseInt(roundTime), maxRounds: parseInt(maxRounds) },
+                currentRound: 0,
+                quotes: [...MOVIE_QUOTES].sort(() => Math.random() - 0.5).slice(0, parseInt(maxRounds)),
+                players: {
+                    [state.user.id]: {
+                        name: state.user.name,
+                        avatar: state.user.avatar,
+                        score: 0,
+                        ready: true
+                    }
+                },
+                chat: []
+            };
+
+            await setDoc(roomRef, initialData);
+            listenToRoom(code);
+            switchView('lobby');
+        }
+
+        async function joinFirebaseRoom(code) {
+            const hasFb = await initFirebase();
+            if (!hasFb || !db) {
+                showToast("Modo Firebase indisponível. Iniciando partida Solo.");
+                startSoloGame();
+                return;
+            }
+
+            const cleanCode = code.trim().toUpperCase();
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', cleanCode);
+            const snap = await getDoc(roomRef);
+
+            if (!snap.exists()) {
+                showToast("Sala não encontrada! Verifique o código.");
+                return;
+            }
+
+            state.roomCode = cleanCode;
+            state.isHost = false;
+            state.mode = 'firebase';
+
+            // Add player
+            await updateDoc(roomRef, {
+                [`players.${state.user.id}`]: {
+                    name: state.user.name,
+                    avatar: state.user.avatar,
+                    score: 0,
+                    ready: true
+                }
+            });
+
+            listenToRoom(cleanCode);
+            switchView('lobby');
+        }
+
+        function listenToRoom(code) {
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
+            
+            state.unsubscribeRoom = onSnapshot(roomRef, (snapshot) => {
+                if (!snapshot.exists()) return;
+                const data = snapshot.data();
+                state.roomData = data;
+
+                // Sync view according to room status
+                if (data.status === 'LOBBY') {
+                    renderLobbyData(data);
+                } else if (data.status === 'PLAYING') {
+                    if (views.game.classList.contains('hidden')) {
+                        switchView('game');
+                    }
+                    renderGameData(data);
+                } else if (data.status === 'FINISHED') {
+                    renderResultsData(data);
+                }
+            }, (error) => {
+                console.error("Firestore sync error:", error);
+            });
+        }
+
+        function renderLobbyData(data) {
+            document.getElementById('lobby-room-code').textContent = data.code;
+            const players = Object.values(data.players || {});
+            document.getElementById('lobby-player-count').textContent = `${players.length} / 8`;
+
+            const listEl = document.getElementById('lobby-player-list');
+            listEl.innerHTML = players.map(p => `
+                <div class="bg-cine-dark p-3 rounded-xl border border-cine-border flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">${p.avatar}</span>
+                        <span class="text-xs font-semibold text-gray-200">${p.name}</span>
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-green-900/40 text-green-400 border border-green-700/30">Pronto</span>
+                </div>
+            `).join('');
+
+            // Render Chat
+            const chatBox = document.getElementById('lobby-chat-messages');
+            chatBox.innerHTML = (data.chat || []).map(msg => `
+                <div class="bg-cine-dark/60 p-2 rounded border border-cine-border/50">
+                    <span class="font-bold text-gold-400">${msg.user}:</span>
+                    <span class="text-gray-300 ml-1">${msg.text}</span>
+                </div>
+            `).join('');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function renderGameData(data) {
+            const currentQuote = data.quotes[data.currentRound];
+            if (!currentQuote) return;
+
+            document.getElementById('game-round-indicator').textContent = `${data.currentRound + 1} / ${data.settings.maxRounds}`;
+            document.getElementById('quote-text-pt').textContent = `"${currentQuote.pt}"`;
+            document.getElementById('quote-text-en').textContent = `Original: "${currentQuote.en}"`;
+
+            const myData = data.players[state.user.id] || { score: 0 };
+            document.getElementById('game-my-score').textContent = `${myData.score} pts`;
+
+            // Live Scoreboard
+            renderLiveScoreboard(Object.values(data.players));
+        }
+
+        function renderLiveScoreboard(players) {
+            const sorted = [...players].sort((a, b) => b.score - a.score);
+            const container = document.getElementById('live-scoreboard-list');
+            container.innerHTML = sorted.map((p, idx) => `
+                <div class="flex items-center justify-between p-2 rounded-lg bg-cine-dark border border-cine-border">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-gold-500 font-mono">#${idx + 1}</span>
+                        <span class="text-xs text-gray-200">${p.avatar} ${p.name}</span>
+                    </div>
+                    <span class="font-mono text-xs font-bold text-green-400">${p.score} pts</span>
+                </div>
+            `).join('');
+        }
+
+        function renderResultsData(data) {
+            switchView('results');
+            if (window.confetti) {
+                window.confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            }
+
+            const sorted = Object.values(data.players || {}).sort((a, b) => b.score - a.score);
+            const podium = document.getElementById('podium-container');
+
+            podium.innerHTML = sorted.slice(0, 3).map((p, idx) => {
+                const heights = ['h-32', 'h-24', 'h-16'];
+                const orders = ['order-2', 'order-1', 'order-3'];
+                return `
+                    <div class="flex flex-col items-center ${orders[idx]}">
+                        <div class="w-12 h-12 rounded-full bg-gold-600/20 border-2 border-gold-500 flex items-center justify-center text-xl mb-1">${p.avatar}</div>
+                        <span class="text-[11px] font-bold text-gray-200">${p.name}</span>
+                        <div class="w-20 md:w-24 bg-gradient-to-t from-gold-700 to-gold-500 ${heights[idx]} rounded-t-xl flex items-center justify-center font-bold text-black text-xl mt-1 shadow-xl">
+                            ${idx + 1}º
+                        </div>
+                        <span class="text-xs font-mono font-bold text-gold-400 mt-1">${p.score} pts</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function speakCurrentQuote() {
+            const quoteText = document.getElementById('quote-text-pt').textContent;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(quoteText);
+                utterance.lang = 'pt-BR';
+                utterance.rate = 0.9;
+                utterance.pitch = 0.95;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                showToast("Sua voz sintetizada não é suportada neste navegador.");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Profile Init
+            document.getElementById('user-name-display').textContent = state.user.name;
+            document.getElementById('user-avatar').textContent = state.user.avatar;
+
+            // Buttons & Navigation
+            document.getElementById('btn-logo-home').addEventListener('click', () => switchView('home'));
+
+            document.getElementById('btn-solo-bot').addEventListener('click', startSoloGame);
+
+            document.getElementById('btn-create-room').addEventListener('click', () => {
+                const roundTime = document.getElementById('select-round-time').value;
+                const maxRounds = document.getElementById('select-max-rounds').value;
+                createFirebaseRoom(roundTime, maxRounds);
+            });
+
+            document.getElementById('btn-join-room').addEventListener('click', () => {
+                const code = document.getElementById('input-room-code').value;
+                if (code.length < 3) {
+                    showToast("Por favor digite um código de sala válido.");
+                    return;
+                }
+                joinFirebaseRoom(code);
+            });
+
+            document.getElementById('btn-copy-code').addEventListener('click', () => {
+                const code = state.roomCode || '';
+                const tempInput = document.createElement('input');
+                tempInput.value = code;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                showToast(`Código ${code} copiado para a área de transferência!`);
+            });
+
+            document.getElementById('btn-leave-room').addEventListener('click', () => {
+                if (state.unsubscribeRoom) state.unsubscribeRoom();
+                switchView('home');
+            });
+
+            document.getElementById('form-submit-answer').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const guess = document.getElementById('input-guess').value;
+                if (state.mode === 'solo') {
+                    submitGuessSolo(guess);
+                }
+            });
+
+            document.getElementById('btn-speak-quote').addEventListener('click', speakCurrentQuote);
+
+            document.getElementById('btn-back-to-home').addEventListener('click', () => switchView('home'));
+
+            // Profile Edit Modal
+            document.getElementById('btn-edit-profile').addEventListener('click', () => {
+                document.getElementById('input-edit-username').value = state.user.name;
+                document.getElementById('modal-edit-profile').classList.remove('hidden');
+            });
+
+            document.getElementById('btn-save-profile').addEventListener('click', () => {
+                const newName = document.getElementById('input-edit-username').value.trim();
+                if (newName) state.user.name = newName;
+                document.getElementById('user-name-display').textContent = state.user.name;
+                document.getElementById('user-avatar').textContent = state.user.avatar;
+                document.getElementById('modal-edit-profile').classList.add('hidden');
+            });
+
+            document.querySelectorAll('.btn-avatar').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    state.user.avatar = e.target.textContent.trim();
+                    document.querySelectorAll('.btn-avatar').forEach(b => b.classList.remove('border-gold-500'));
+                    btn.classList.add('border-gold-500');
+                });
+            });
+
+            // Modals Controls
+            document.getElementById('btn-open-python-modal').addEventListener('click', () => {
+                document.getElementById('modal-python-server').classList.remove('hidden');
+            });
+
+            document.getElementById('btn-open-guide-modal').addEventListener('click', () => {
+                document.getElementById('modal-github-guide').classList.remove('hidden');
+            });
+
+            document.querySelectorAll('.btn-close-modal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('modal-python-server').classList.add('hidden');
+                    document.getElementById('modal-github-guide').classList.add('hidden');
+                });
+            });
+
+            document.getElementById('btn-copy-python-code').addEventListener('click', () => {
+                const code = document.getElementById('code-python-server').textContent;
+                const tempInput = document.createElement('textarea');
+                tempInput.value = code;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                showToast('Código Python copiado!');
+            });
+        });
+    </script>
+</body>
+</html>
