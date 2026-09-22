@@ -1,25 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineQuote Showdown - Adivinhe o Filme pela Frase</title>
-
-    <!-- Tailwind CSS -->
+    <title>CineQuote PvP 🎬 - Adivinhe o Filme pelas Frases</title>
+    
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-    <!-- Canvas Confetti for Victory Screen -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -27,1241 +14,1551 @@
                 extend: {
                     colors: {
                         gold: {
-                            400: '#f6d365',
-                            500: '#fda085',
-                            600: '#d4af37',
-                            700: '#aa7c11',
-                            900: '#4a3300'
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                            700: '#a16207',
                         },
-                        cine: {
-                            dark: '#0f0f13',
-                            card: '#181824',
-                            border: '#2a2a3e',
-                            accent: '#e50914'
+                        cinema: {
+                            900: '#0b0d14',
+                            800: '#131722',
+                            700: '#1d2332',
+                            gold: '#dfb15b'
                         }
                     },
                     fontFamily: {
-                        cinzel: ['Cinzel', 'serif'],
-                        sans: ['Inter', 'sans-serif']
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Cinzel', 'Georgia', 'serif']
                     }
                 }
             }
         }
     </script>
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PeerJS for Serverless WebRTC PvP -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    
+    <!-- Socket.IO Client for optional Custom Python Backend -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <!-- Canvas Confetti for Victory Animations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Custom CSS Styles -->
     <style>
         body {
-            background-color: #0b0b0f;
-            color: #f3f4f6;
-            background-image: 
-                radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(229, 9, 20, 0.05) 0%, transparent 40%);
-            background-attachment: fixed;
+            background-color: #08090e;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
         }
 
-        .gold-gradient-text {
-            background: linear-gradient(135deg, #fff 0%, #f6d365 50%, #d4af37 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .font-cinzel {
+            font-family: 'Cinzel', Georgia, serif;
         }
 
-        .gold-border-glow {
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
-            border: 1px solid rgba(212, 175, 55, 0.4);
+        /* Cinema Glow Effects */
+        .gold-glow {
+            box-shadow: 0 0 25px rgba(223, 177, 91, 0.25);
         }
 
-        .gold-button {
-            background: linear-gradient(135deg, #d4af37 0%, #aa7c11 100%);
-            transition: all 0.3s ease;
-        }
-        .gold-button:hover {
-            background: linear-gradient(135deg, #f6d365 0%, #d4af37 100%);
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
-            transform: translateY(-2px);
+        .gold-text-glow {
+            text-shadow: 0 0 12px rgba(234, 179, 8, 0.5);
         }
 
-        /* Custom Scrollbar */
+        .red-glow {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Glassmorphic Panel */
+        .glass-panel {
+            background: rgba(19, 23, 34, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(223, 177, 91, 0.2);
+        }
+
+        /* Animated Background Pattern */
+        .bg-cinema-pattern {
+            background-image: radial-gradient(rgba(234, 179, 8, 0.08) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+
+        /* Scrollbar Styling */
         ::-webkit-scrollbar {
             width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #0f0f13;
+            background: #0b0d14;
         }
         ::-webkit-scrollbar-thumb {
-            background: #2a2a3e;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #d4af37;
+            background: #ca8a04;
+            border-radius: 4px;
         }
 
-        .pulse-timer {
-            animation: pulse-red 1s infinite;
+        /* Custom Keyframe Animations */
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
         }
 
-        @keyframes pulse-red {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; color: #ef4444; }
-            100% { transform: scale(1); opacity: 1; }
+        .pulse-gold {
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+
+        /* Countdown Ring Animation */
+        .timer-circle {
+            transition: stroke-dashoffset 1s linear;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans selection:bg-gold-600 selection:text-black">
+<body class="min-h-screen bg-cinema-pattern text-slate-100 flex flex-col justify-between selection:bg-amber-500 selection:text-black">
 
-    <!-- Header -->
-    <header class="border-b border-cine-border bg-cine-dark/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3 cursor-pointer" id="btn-logo-home">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-gold-700 to-gold-400 flex items-center justify-center text-black font-bold text-xl shadow-lg">
+    <!-- Top Navigation Header -->
+    <header class="w-full glass-panel sticky top-0 z-40 border-b border-amber-500/20 px-4 py-3 shadow-lg">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="app.showScreen('screen-landing')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-700 flex items-center justify-center text-slate-950 font-bold text-xl shadow-md gold-glow">
                     <i class="fa-solid fa-film"></i>
                 </div>
                 <div>
-                    <h1 class="font-cinzel text-lg md:text-xl font-bold gold-gradient-text tracking-wider leading-none">CINE QUOTE</h1>
-                    <span class="text-[10px] text-gray-400 tracking-widest uppercase font-semibold">Showdown PvP</span>
+                    <h1 class="font-cinzel text-xl md:text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-600 tracking-wider">
+                        CineQuote <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-sans border border-amber-500/30">PvP Online</span>
+                    </h1>
+                    <p class="text-[10px] text-slate-400 font-medium">Adivinhe o Filme pelas Frases com Amigos</p>
                 </div>
             </div>
 
-            <!-- Header Action Controls -->
-            <div class="flex items-center gap-2 md:gap-4">
-                <button id="btn-open-python-modal" class="px-3 py-1.5 text-xs rounded-lg bg-cine-card border border-cine-border hover:border-gold-600/50 text-gray-300 hover:text-white transition flex items-center gap-2">
-                    <i class="fa-brands fa-python text-yellow-500 text-sm"></i>
-                    <span class="hidden md:inline">Server Python</span>
+            <!-- Mode & Diagnostic Quick Actions -->
+            <div class="flex items-center gap-2 md:gap-3">
+                <button onclick="app.openDiagnosticModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs md:text-sm font-semibold text-amber-400 flex items-center gap-2 transition hover:border-amber-500/50">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-400 animate-pulse"></i>
+                    <span class="hidden sm:inline">Diagnóstico de Conexão</span>
+                    <span class="sm:hidden">Ajuda</span>
                 </button>
-                <button id="btn-open-guide-modal" class="px-3 py-1.5 text-xs rounded-lg bg-cine-card border border-cine-border hover:border-gold-600/50 text-gray-300 hover:text-white transition flex items-center gap-2">
-                    <i class="fa-brands fa-github text-white text-sm"></i>
-                    <span class="hidden md:inline">Como Hospedar</span>
+                <button onclick="app.openPythonCodeModal()" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-900/60 to-indigo-900/60 hover:from-blue-800 hover:to-indigo-800 border border-blue-500/30 text-xs md:text-sm font-semibold text-blue-300 flex items-center gap-2 transition">
+                    <i class="fa-brands fa-python text-blue-400"></i>
+                    <span class="hidden md:inline">Código Servidor Python</span>
                 </button>
-
-                <!-- User Profile Badge -->
-                <div class="flex items-center gap-2 bg-cine-card border border-cine-border rounded-full pl-2 pr-3 py-1 cursor-pointer hover:border-gold-600 transition" id="btn-edit-profile">
-                    <div id="user-avatar" class="w-7 h-7 rounded-full bg-gold-600 flex items-center justify-center text-black font-bold text-xs">
-                        🎬
-                    </div>
-                    <span id="user-name-display" class="text-xs font-semibold text-gray-200 max-w-[90px] truncate">Jogador</span>
-                    <i class="fa-solid fa-pen text-[10px] text-gray-400"></i>
-                </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 max-w-6xl w-full mx-auto p-4 flex flex-col justify-center">
+    <!-- Main Content Container -->
+    <main class="max-w-6xl w-full mx-auto p-4 md:p-6 flex-grow flex flex-col justify-center">
 
-        <!-- Custom Notification Banner -->
-        <div id="notification-toast" class="hidden fixed top-16 right-4 z-50 bg-cine-card border-l-4 border-gold-600 text-white px-4 py-3 rounded shadow-2xl transition-all duration-300 max-w-md flex items-center gap-3">
-            <i id="notification-icon" class="fa-solid fa-circle-info text-gold-500"></i>
-            <span id="notification-text" class="text-xs md:text-sm">Notificação</span>
-        </div>
-
-        <!-- ================= VIEW 1: HOME / JOIN / CREATE ================= -->
-        <div id="view-home" class="space-y-8 py-6">
-            <div class="text-center max-w-2xl mx-auto space-y-4">
-                <span class="px-3 py-1 rounded-full bg-gold-900/40 text-gold-400 text-xs font-semibold uppercase tracking-widest border border-gold-600/30">
-                    <i class="fa-solid fa-clapperboard mr-1"></i> Desafio de Cinema PvP
-                </span>
-                <h2 class="text-3xl md:text-5xl font-cinzel font-black gold-gradient-text tracking-wide">
-                    Quem adivinha o filme primeiro?
+        <!-- SCREEN 1: LANDING & MULTIPLAYER SETUP -->
+        <section id="screen-landing" class="space-y-8 py-4">
+            <!-- Hero Title Banner -->
+            <div class="text-center space-y-3">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
+                    <i class="fa-solid fa-bolt text-amber-400"></i> Multi-jogador em Tempo Real sem Instalação
+                </div>
+                <h2 class="font-cinzel text-3xl md:text-5xl font-black text-slate-100 tracking-wide">
+                    DESAFIE SEUS AMIGOS NO <span class="text-amber-400 gold-text-glow">CINEMA</span>
                 </h2>
-                <p class="text-gray-400 text-sm md:text-base">
-                    Entre em uma sala com amigos, ouça ou leia citações lendárias do cinema mundial e teste seus conhecimentos em tempo real!
+                <p class="text-slate-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+                    Você realmente conhece as frases mais marcantes da história da sétima arte? Escolha seu modo de jogo e prove sua memória cinematográfica!
                 </p>
             </div>
 
-            <!-- Action Grid -->
-            <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                <!-- Create Room Card -->
-                <div class="bg-cine-card border border-cine-border rounded-2xl p-6 flex flex-col justify-between hover:border-gold-600/50 transition-all duration-300 group">
-                    <div class="space-y-4">
-                        <div class="w-12 h-12 rounded-xl bg-gold-600/10 border border-gold-600/30 flex items-center justify-center text-gold-500 text-2xl group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-plus"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold font-cinzel text-white">Criar Nova Sala</h3>
-                            <p class="text-xs text-gray-400 mt-1">Gere um código de sala exclusivo e convide seus amigos para jogar.</p>
-                        </div>
-
-                        <!-- Room Options -->
-                        <div class="space-y-3 pt-2">
-                            <div>
-                                <label class="text-xs font-semibold text-gray-400 block mb-1">Tempo por Rodada</label>
-                                <select id="select-round-time" class="w-full bg-cine-dark border border-cine-border rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-gold-600">
-                                    <option value="15">15 Segundos (Rápido)</option>
-                                    <option value="25" selected>25 Segundos (Padrão)</option>
-                                    <option value="40">40 Segundos (Relaxado)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-xs font-semibold text-gray-400 block mb-1">Número de Rodadas</label>
-                                <select id="select-max-rounds" class="w-full bg-cine-dark border border-cine-border rounded-lg px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-gold-600">
-                                    <option value="5">5 Filmes</option>
-                                    <option value="8" selected>8 Filmes</option>
-                                    <option value="12">12 Filmes</option>
-                                </select>
-                            </div>
-                        </div>
+            <!-- GitHub Pages Alert Box explaining mixed content issue directly -->
+            <div class="glass-panel p-4 rounded-xl border-l-4 border-l-amber-500 text-xs md:text-sm text-slate-300 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
+                <div class="flex items-start gap-3">
+                    <div class="p-2 bg-amber-500/20 text-amber-400 rounded-lg shrink-0 mt-0.5">
+                        <i class="fa-solid fa-circle-info text-lg"></i>
                     </div>
-
-                    <button id="btn-create-room" class="mt-6 w-full py-3 rounded-xl gold-button text-black font-bold text-sm tracking-wide flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-door-open"></i> Criar Sala Multiplayer
-                    </button>
-                </div>
-
-                <!-- Join Room Card -->
-                <div class="bg-cine-card border border-cine-border rounded-2xl p-6 flex flex-col justify-between hover:border-gold-600/50 transition-all duration-300 group">
-                    <div class="space-y-4">
-                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 text-2xl group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-right-to-bracket"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold font-cinzel text-white">Entrar em uma Sala</h3>
-                            <p class="text-xs text-gray-400 mt-1">Digite o código de 5 letras fornecido pelo host da sala.</p>
-                        </div>
-
-                        <div class="pt-2">
-                            <label class="text-xs font-semibold text-gray-400 block mb-1">Código da Sala</label>
-                            <input type="text" id="input-room-code" placeholder="Ex: CINE7" uppercase class="w-full bg-cine-dark border border-cine-border rounded-lg px-4 py-2.5 text-center text-lg font-mono font-bold tracking-widest text-gold-400 uppercase focus:outline-none focus:border-gold-600 uppercase" maxlength="6">
-                        </div>
-                    </div>
-
-                    <div class="space-y-2 mt-6">
-                        <button id="btn-join-room" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm tracking-wide transition flex items-center justify-center gap-2 shadow-lg">
-                            <i class="fa-solid fa-gamepad"></i> Entrar na Sala
-                        </button>
-                        <button id="btn-solo-bot" class="w-full py-2 rounded-xl border border-cine-border hover:bg-cine-border/40 text-gray-300 text-xs font-semibold transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-robot text-gold-500"></i> Treinar Solo / Contra CineBot
-                        </button>
+                    <div>
+                        <strong class="text-amber-300 font-semibold block text-base">Problema com o Servidor Python no GitHub Pages?</strong>
+                        <p class="text-slate-400">
+                            O GitHub Pages usa <strong>HTTPS</strong> seguro e bloqueia conexões diretas para <code>http://localhost:5000</code>. Utilize o nosso <strong>Modo PeerJS Direto</strong> (funciona 100% online sem instalar nada) ou configure o <strong>Ngrok / Render</strong> no seu código Python.
+                        </p>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- ================= VIEW 2: LOBBY ================= -->
-        <div id="view-lobby" class="hidden space-y-6 max-w-4xl mx-auto w-full">
-            <!-- Room Header Banner -->
-            <div class="bg-cine-card border border-cine-border rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4 gold-border-glow">
-                <div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-xs font-bold text-gold-500 uppercase tracking-widest">Sala Ativa</span>
-                        <span id="lobby-status-badge" class="px-2 py-0.5 rounded text-[10px] bg-green-900/50 text-green-400 border border-green-500/30">Aguardando Jogadores</span>
-                    </div>
-                    <h2 class="text-2xl md:text-3xl font-cinzel font-black text-white mt-1">
-                        Código: <span id="lobby-room-code" class="text-gold-400 font-mono underline decoration-gold-600">XXXXX</span>
-                    </h2>
-                    <p class="text-xs text-gray-400 mt-1">Compartilhe este código com quem vai disputar com você!</p>
-                </div>
-
-                <div class="flex items-center gap-3 w-full md:w-auto">
-                    <button id="btn-copy-code" class="flex-1 md:flex-none px-4 py-2.5 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500 text-gray-200 text-xs font-bold transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-copy text-gold-500"></i> Copiar Código
-                    </button>
-                    <button id="btn-leave-room" class="px-4 py-2.5 rounded-xl bg-red-950/40 border border-red-800/50 hover:bg-red-900/60 text-red-300 text-xs font-bold transition">
-                        Sair
-                    </button>
-                </div>
+                <button onclick="app.openDiagnosticModal()" class="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition shadow">
+                    Resolver Agora <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-6">
-                <!-- Players List (2 columns wide) -->
-                <div class="md:col-span-2 bg-cine-card border border-cine-border rounded-2xl p-6 space-y-4">
-                    <div class="flex justify-between items-center border-b border-cine-border pb-3">
-                        <h3 class="font-cinzel font-bold text-white text-lg flex items-center gap-2">
-                            <i class="fa-solid fa-users text-gold-500"></i> Jogadores na Sala
+            <!-- Player Profile & Mode Selection Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+                <!-- Left Column: Player Info & Network Mode -->
+                <div class="md:col-span-5 glass-panel p-6 rounded-2xl flex flex-col justify-between space-y-6">
+                    <div class="space-y-4">
+                        <h3 class="font-cinzel text-lg font-bold text-amber-400 flex items-center gap-2">
+                            <i class="fa-solid fa-user-astronaut"></i> Seu Perfil de Jogador
                         </h3>
-                        <span id="lobby-player-count" class="text-xs bg-cine-dark px-3 py-1 rounded-full text-gold-400 font-mono border border-cine-border">1 / 8</span>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Seu Apelido / Nickname</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                                    <i class="fa-solid fa-user"></i>
+                                </span>
+                                <input type="text" id="input-player-name" maxlength="15" value="Cinefilo007" class="w-full pl-9 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-slate-100 text-sm font-semibold outline-none transition">
+                            </div>
+                        </div>
+
+                        <!-- Network Engine Switcher -->
+                        <div class="pt-2">
+                            <label class="block text-xs font-semibold text-slate-400 mb-2">Motor de Conexão Online</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" id="btn-mode-peerjs" onclick="app.setNetworkMode('peerjs')" class="p-3 rounded-xl border border-amber-500/60 bg-amber-500/10 text-amber-300 text-left transition flex flex-col justify-between hover:bg-amber-500/20">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-bold text-xs"><i class="fa-solid fa-wifi text-emerald-400"></i> PeerJS</span>
+                                        <span class="text-[9px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded font-bold">Sem Servidor</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400 mt-1">Direto no navegador (Recomendado no GitHub Pages)</p>
+                                </button>
+                                <button type="button" id="btn-mode-python" onclick="app.setNetworkMode('python')" class="p-3 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 text-left transition flex flex-col justify-between hover:border-slate-700">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-bold text-xs"><i class="fa-brands fa-python text-blue-400"></i> Python WS</span>
+                                        <span class="text-[9px] px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded font-bold">Ngrok/Render</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-1">Servidor Socket.IO em Python customizado</p>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Python Server URL Input (Hidden by default unless python mode chosen) -->
+                        <div id="container-python-url" class="hidden pt-2">
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">URL do Servidor Python (HTTPS)</label>
+                            <input type="text" id="input-python-url" placeholder="https://xxx.ngrok-free.app" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-100 outline-none focus:border-blue-500">
+                            <p class="text-[10px] text-slate-500 mt-1">*Precisa ser HTTPS no GitHub Pages!</p>
+                        </div>
                     </div>
 
-                    <!-- Player Grid -->
-                    <div id="lobby-player-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-h-[160px]">
-                        <!-- Rendered dynamically -->
+                    <div class="pt-4 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+                        <span>Status da Rede:</span>
+                        <span id="badge-network-status" class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Pronto (PeerJS)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Right Column: Create / Join Actions -->
+                <div class="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Action Card 1: Create Room -->
+                    <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between hover:border-amber-500/50 transition group">
+                        <div class="space-y-3">
+                            <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-plus"></i>
+                            </div>
+                            <h4 class="font-cinzel text-xl font-bold text-slate-100">Criar Nova Sala</h4>
+                            <p class="text-xs text-slate-400">Gere um código de sala único e convide seus amigos para disputar em tempo real.</p>
+                        </div>
+                        <button onclick="app.createRoom()" class="mt-6 w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-sm shadow-lg gold-glow transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-gamepad"></i> Criar Sala Multiplayer
+                        </button>
                     </div>
 
-                    <!-- Host Controls -->
-                    <div id="host-controls" class="pt-4 border-t border-cine-border flex flex-col sm:flex-row gap-3">
-                        <button id="btn-start-game" class="w-full py-3 rounded-xl gold-button text-black font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg">
-                            <i class="fa-solid fa-play"></i> Iniciar Partida Agora
+                    <!-- Action Card 2: Join Room -->
+                    <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between hover:border-amber-500/50 transition group">
+                        <div class="space-y-3">
+                            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 text-2xl group-hover:scale-110 transition">
+                                <i class="fa-solid fa-key"></i>
+                            </div>
+                            <h4 class="font-cinzel text-xl font-bold text-slate-100">Entrar em Sala</h4>
+                            <p class="text-xs text-slate-400">Possui o código do seu amigo? Digite abaixo para conectar-se instantaneamente.</p>
+                            <input type="text" id="input-room-code" placeholder="Ex: CINE89" uppercase class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-center font-mono font-bold tracking-widest text-amber-400 placeholder-slate-600 text-sm outline-none focus:border-amber-500 uppercase">
+                        </div>
+                        <button onclick="app.joinRoom()" class="mt-4 w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 font-bold text-sm transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-right-to-bracket"></i> Entrar na Sala
+                        </button>
+                    </div>
+
+                    <!-- Action Card 3: Solo Training Practice (Full width) -->
+                    <div class="sm:col-span-2 glass-panel p-4 rounded-xl flex items-center justify-between border-slate-800 hover:border-slate-700 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl">
+                                <i class="fa-solid fa-bullseye"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-sm text-slate-200">Modo Treino Solo</h5>
+                                <p class="text-xs text-slate-400">Pratique sozinho contra o relógio e teste seus conhecimentos sem outros jogadores.</p>
+                            </div>
+                        </div>
+                        <button onclick="app.startSoloGame()" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs transition">
+                            Jogar Solo <i class="fa-solid fa-play ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 2: ROOM LOBBY (WAITING ROOM) -->
+        <section id="screen-lobby" class="hidden space-y-6 py-4">
+            <div class="glass-panel p-6 md:p-8 rounded-2xl space-y-6">
+                <!-- Lobby Header -->
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-6">
+                    <div>
+                        <span class="text-xs font-semibold text-amber-400 uppercase tracking-widest">Sala de Espera Multiplayer</span>
+                        <h2 class="font-cinzel text-3xl font-extrabold text-slate-100 flex items-center gap-3">
+                            Código: <span id="lobby-room-code" class="text-amber-400 font-mono gold-text-glow">CINE00</span>
+                        </h2>
+                    </div>
+
+                    <!-- Direct Invite Share Options -->
+                    <div class="flex items-center gap-3">
+                        <button onclick="app.copyRoomLink()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-bold text-slate-200 flex items-center gap-2 transition">
+                            <i class="fa-solid fa-copy text-amber-400"></i> Copiar Link de Convite
+                        </button>
+                        <button onclick="app.leaveRoom()" class="px-4 py-2.5 bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 rounded-xl text-xs font-bold text-red-300 transition">
+                            Sair da Sala
                         </button>
                     </div>
                 </div>
 
-                <!-- Lobby Chat Box -->
-                <div class="bg-cine-card border border-cine-border rounded-2xl p-4 flex flex-col h-[320px]">
-                    <div class="border-b border-cine-border pb-2 mb-2 flex items-center gap-2">
-                        <i class="fa-solid fa-comments text-gold-500 text-xs"></i>
-                        <h4 class="font-cinzel text-xs font-bold text-gray-200">Chat da Sala</h4>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <!-- Player List -->
+                    <div class="md:col-span-7 space-y-4">
+                        <h3 class="font-cinzel text-base font-bold text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-users text-amber-400"></i> Jogadores Conectados (<span id="lobby-player-count">1</span>/6)
+                        </h3>
+
+                        <div id="lobby-players-list" class="space-y-2">
+                            <!-- Populated dynamically via JS -->
+                        </div>
                     </div>
 
-                    <div id="lobby-chat-messages" class="flex-1 overflow-y-auto space-y-2 text-xs pr-1">
-                        <div class="text-gray-500 italic text-[11px] text-center my-2">Bem-vindo ao chat da sala!</div>
+                    <!-- Room Configuration (Host Only Settings) -->
+                    <div class="md:col-span-5 bg-slate-900/60 p-5 rounded-xl border border-slate-800 space-y-4">
+                        <h3 class="font-cinzel text-base font-bold text-amber-400 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders"></i> Configurações da Partida
+                        </h3>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Tempo por Rodada</label>
+                                <select id="setting-round-time" onchange="app.updateRoomSettings()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs font-bold text-slate-200 outline-none focus:border-amber-500">
+                                    <option value="20">20 Segundos (Rápido)</option>
+                                    <option value="30" selected>30 Segundos (Padrão)</option>
+                                    <option value="45">45 Segundos (Tranquilo)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Número de Rodadas</label>
+                                <select id="setting-total-rounds" onchange="app.updateRoomSettings()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs font-bold text-slate-200 outline-none focus:border-amber-500">
+                                    <option value="5" selected>5 Frases</option>
+                                    <option value="10">10 Frases</option>
+                                    <option value="15">15 Frases</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Start Game Button (Host Only) -->
+                        <div class="pt-4">
+                            <button id="btn-start-game" onclick="app.requestStartGame()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-sm shadow-lg gold-glow transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-play mr-1"></i> Iniciar Jogo
+                            </button>
+                            <p id="txt-host-only-msg" class="text-[10px] text-center text-slate-500 mt-2">Aguardando o anfitrião iniciar a partida...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN 3: GAME ARENA (ACTIVE PVP ROUND) -->
+        <section id="screen-game" class="hidden space-y-6 py-2">
+            <!-- Top HUD Bar: Timer & Scores Summary -->
+            <div class="glass-panel p-4 rounded-xl flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <span class="px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-lg font-cinzel font-bold text-sm">
+                        Rodada <span id="game-current-round">1</span>/<span id="game-total-rounds">5</span>
+                    </span>
+                    <span id="game-status-tag" class="hidden sm:inline-block px-2.5 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold">
+                        <i class="fa-solid fa-film text-amber-400 mr-1"></i> Valendo Pontos!
+                    </span>
+                </div>
+
+                <!-- Timer Ring -->
+                <div class="flex items-center gap-3">
+                    <div class="relative w-12 h-12 flex items-center justify-center">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                            <path class="text-slate-800" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path id="timer-progress-ring" class="text-amber-400 timer-circle" stroke-dasharray="100, 100" stroke-dashoffset="0" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <span id="game-timer-seconds" class="absolute text-sm font-black font-mono text-amber-400">30</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Interactive Quote Card -->
+            <div class="glass-panel p-6 md:p-10 rounded-2xl text-center space-y-6 relative overflow-hidden border-amber-500/30 shadow-2xl">
+                <div class="absolute top-3 left-4 text-slate-600 text-xs font-mono">FRASE DE CINEMA #<span id="game-quote-id">00</span></div>
+                
+                <!-- Quote Text Box -->
+                <div class="py-6 px-4">
+                    <i class="fa-solid fa-quote-left text-amber-500/20 text-4xl block mb-2"></i>
+                    <p id="game-quote-text" class="font-serif text-xl md:text-3xl font-bold italic text-slate-100 leading-snug tracking-wide">
+                        "Carregando frase icônica..."
+                    </p>
+                    <i class="fa-solid fa-quote-right text-amber-500/20 text-4xl block mt-2"></i>
+                </div>
+
+                <!-- Progressive Hints Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-4 border-t border-slate-800">
+                    <div id="hint-box-1" class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-left transition">
+                        <span class="text-[10px] font-bold text-amber-500 uppercase block mb-1"><i class="fa-solid fa-calendar"></i> Dica 1 (Ano / Gênero)</span>
+                        <p id="hint-text-1" class="text-xs font-semibold text-slate-400">Liberando em alguns segundos...</p>
+                    </div>
+                    <div id="hint-box-2" class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-left transition">
+                        <span class="text-[10px] font-bold text-amber-500 uppercase block mb-1"><i class="fa-solid fa-user-ninja"></i> Dica 2 (Diretor / Elenco)</span>
+                        <p id="hint-text-2" class="text-xs font-semibold text-slate-400">Bloqueado</p>
+                    </div>
+                    <div id="hint-box-3" class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-left transition">
+                        <span class="text-[10px] font-bold text-amber-500 uppercase block mb-1"><i class="fa-solid fa-font"></i> Dica 3 (Iniciais do Título)</span>
+                        <p id="hint-text-3" class="text-xs font-semibold text-slate-400">Bloqueado</p>
+                    </div>
+                </div>
+
+                <!-- Input & Guess Box -->
+                <div class="pt-2 max-w-xl mx-auto">
+                    <form id="form-guess" onsubmit="app.submitGuess(event)" class="flex gap-2">
+                        <input type="text" id="input-guess" placeholder="Digite o nome do filme em Português..." autocomplete="off" class="flex-grow px-4 py-3 bg-slate-950 border-2 border-amber-500/40 rounded-xl text-slate-100 font-semibold text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/20 transition">
+                        <button type="submit" id="btn-submit-guess" class="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-sm transition shadow-lg gold-glow shrink-0">
+                            Enviar <i class="fa-solid fa-paper-plane ml-1"></i>
+                        </button>
+                    </form>
+                    <p id="guess-feedback" class="text-xs font-semibold mt-2 h-4 text-emerald-400"></p>
+                </div>
+            </div>
+
+            <!-- Sidebar & Chat Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <!-- Live Leaderboard -->
+                <div class="md:col-span-6 glass-panel p-4 rounded-xl space-y-3">
+                    <h4 class="font-cinzel text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center justify-between">
+                        <span><i class="fa-solid fa-trophy mr-1"></i> Placar em Tempo Real</span>
+                        <span class="text-[10px] text-slate-500">Pontuação Total</span>
+                    </h4>
+                    <div id="game-leaderboard-list" class="space-y-2 max-h-48 overflow-y-auto">
+                        <!-- Dynamic Leaderboard Entries -->
+                    </div>
+                </div>
+
+                <!-- Room Live Chat & Activity Log -->
+                <div class="md:col-span-6 glass-panel p-4 rounded-xl flex flex-col justify-between h-56">
+                    <h4 class="font-cinzel text-xs font-bold text-slate-300 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-amber-400"></i> Chat e Atividades
+                    </h4>
+                    
+                    <div id="game-chat-messages" class="flex-grow overflow-y-auto space-y-1.5 text-xs pr-1 mb-2 font-sans">
+                        <div class="text-slate-500 italic text-[11px]">Bate-papo da sala iniciado! Digite abaixo.</div>
                     </div>
 
-                    <form id="form-lobby-chat" class="mt-2 flex gap-2">
-                        <input type="text" id="input-chat-msg" placeholder="Digite uma mensagem..." class="flex-1 bg-cine-dark border border-cine-border rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-gold-600">
-                        <button type="submit" class="px-3 py-1.5 bg-gold-600 text-black font-bold rounded-lg hover:bg-gold-500 transition">
-                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                    <form id="form-chat" onsubmit="app.sendChatMessage(event)" class="flex gap-2">
+                        <input type="text" id="input-chat" placeholder="Enviar mensagem..." class="w-full px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 outline-none focus:border-amber-500">
+                        <button type="submit" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg transition">
+                            <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </form>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- ================= VIEW 3: GAMEPLAY ================= -->
-        <div id="view-game" class="hidden space-y-6 max-w-4xl mx-auto w-full">
-            <!-- Game Top Status Bar -->
-            <div class="bg-cine-card border border-cine-border rounded-2xl p-4 flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <div>
-                        <span class="text-[10px] font-bold text-gray-400 uppercase">Rodada</span>
-                        <div class="text-xl font-cinzel font-bold text-gold-400" id="game-round-indicator">1 / 8</div>
+        <!-- SCREEN 4: GAME OVER & PODIUM -->
+        <section id="screen-results" class="hidden space-y-6 py-6 text-center">
+            <div class="glass-panel p-8 md:p-12 rounded-2xl max-w-2xl mx-auto space-y-8 border-amber-500/40 gold-glow">
+                <div class="space-y-2">
+                    <div class="inline-block p-4 bg-amber-500/10 rounded-full border border-amber-500/30 text-amber-400 text-4xl mb-2 animate-bounce">
+                        <i class="fa-solid fa-crown"></i>
                     </div>
-                    <div class="h-8 w-px bg-cine-border"></div>
-                    <div>
-                        <span class="text-[10px] font-bold text-gray-400 uppercase">Sua Pontuação</span>
-                        <div class="text-xl font-mono font-bold text-green-400" id="game-my-score">0 pts</div>
-                    </div>
+                    <h2 class="font-cinzel text-3xl md:text-4xl font-black text-amber-400 gold-text-glow">FIM DA PARTIDA!</h2>
+                    <p class="text-slate-400 text-xs md:text-sm">Confira os vencedores e campeões de cinema da rodada</p>
                 </div>
 
-                <!-- Timer Ring/Box -->
-                <div class="flex items-center gap-3">
-                    <button id="btn-speak-quote" title="Ouvir citação com voz" class="w-10 h-10 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500 text-gold-400 flex items-center justify-center transition">
-                        <i class="fa-solid fa-volume-high"></i>
+                <!-- Podium List -->
+                <div id="results-podium" class="space-y-3 max-w-md mx-auto">
+                    <!-- Dynamic Winner Entries -->
+                </div>
+
+                <div class="pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <button onclick="app.returnToLobby()" class="w-full sm:w-auto px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-sm transition shadow-lg gold-glow">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> Jogar Novamente
                     </button>
-                    <div class="bg-cine-dark border border-cine-border rounded-xl px-4 py-2 text-center min-w-[80px]" id="timer-container">
-                        <span class="text-[9px] font-bold text-gray-400 block uppercase">Tempo</span>
-                        <span id="game-timer" class="text-2xl font-mono font-bold text-gold-400">25</span>
-                    </div>
+                    <button onclick="app.showScreen('screen-landing')" class="w-full sm:w-auto px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-sm transition">
+                        <i class="fa-solid fa-house mr-1"></i> Voltar ao Menu
+                    </button>
                 </div>
             </div>
+        </section>
 
-            <!-- Quote Showcase Box -->
-            <div class="bg-cine-card border border-gold-600/30 rounded-3xl p-6 md:p-10 text-center relative overflow-hidden shadow-2xl gold-border-glow">
-                <div class="absolute -right-10 -bottom-10 opacity-5 text-9xl text-gold-500 pointer-events-none font-serif">“</div>
+    </main>
 
-                <div class="space-y-4 relative z-10">
-                    <span class="inline-block px-3 py-1 rounded-full bg-gold-900/40 text-gold-400 text-xs font-semibold uppercase tracking-wider border border-gold-600/20">
-                        <i class="fa-solid fa-quote-left mr-1"></i> Citação em Português
-                    </span>
+    <!-- DIAGNOSTIC MODAL (FULFILLS USER REQUIREMENT 1) -->
+    <div id="modal-diagnostic" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel max-w-3xl w-full p-6 md:p-8 rounded-2xl border-amber-500/40 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-amber-500/20 text-amber-400 rounded-lg">
+                        <i class="fa-solid fa-stethoscope text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-cinzel text-xl font-bold text-slate-100">Painel de Diagnóstico de Conexão</h3>
+                        <p class="text-xs text-slate-400">Por que o servidor Python no localhost falha no GitHub Pages?</p>
+                    </div>
+                </div>
+                <button onclick="app.closeDiagnosticModal()" class="text-slate-400 hover:text-slate-100 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
 
-                    <h2 id="quote-text-pt" class="text-xl md:text-3xl font-cinzel font-bold text-white leading-relaxed italic px-2">
-                        "Vou fazer uma oferta que ele não poderá recusar."
-                    </h2>
-
-                    <p id="quote-text-en" class="text-xs md:text-sm text-gray-400 italic">
-                        Original: "I'm gonna make him an offer he can't refuse."
+            <!-- Problem Explanation Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-red-500/30 space-y-2">
+                    <span class="font-bold text-red-400 block"><i class="fa-solid fa-lock"></i> 1. Conteúdo Misto HTTPS</span>
+                    <p class="text-slate-400 leading-relaxed">
+                        O GitHub Pages roda em <strong>HTTPS://</strong>. Navegadores por segurança bloqueiam chamadas para servidores inseguros em <strong>HTTP://localhost</strong>.
+                    </p>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-amber-500/30 space-y-2">
+                    <span class="font-bold text-amber-400 block"><i class="fa-solid fa-globe"></i> 2. Regras de CORS</span>
+                    <p class="text-slate-400 leading-relaxed">
+                        Se o servidor Python não enviar os cabeçalhos <code>Access-Control-Allow-Origin: *</code>, o navegador recusa a conexão via Socket.IO.
+                    </p>
+                </div>
+                <div class="bg-slate-900/90 p-4 rounded-xl border border-emerald-500/30 space-y-2">
+                    <span class="font-bold text-emerald-400 block"><i class="fa-solid fa-circle-check"></i> 3. Solução com Ngrok</span>
+                    <p class="text-slate-400 leading-relaxed">
+                        Execute <code>ngrok http 5000</code> na sua máquina. O Ngrok gera uma URL <strong>HTTPS</strong> segura aceita pelo GitHub Pages!
                     </p>
                 </div>
             </div>
 
-            <!-- Hints Display Box -->
-            <div class="bg-cine-card border border-cine-border rounded-2xl p-5 space-y-3">
-                <div class="flex justify-between items-center border-b border-cine-border pb-2">
-                    <h4 class="font-cinzel text-xs font-bold text-gold-400 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-lightbulb"></i> Dicas Reveladas Progressivamente
-                    </h4>
-                    <span class="text-[10px] text-gray-400">Pontos máximos diminuem com o tempo</span>
+            <!-- Interactive Server URL Connection Tester Tool -->
+            <div class="bg-slate-900/80 p-5 rounded-xl border border-slate-800 space-y-4">
+                <h4 class="font-cinzel text-sm font-bold text-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-vial"></i> Testador de Conexão em Tempo Real
+                </h4>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="test-server-url" placeholder="Ex: https://4a2b-177-12-34.ngrok-free.app ou https://meu-app.onrender.com" class="flex-grow px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-slate-100 outline-none focus:border-amber-500">
+                    <button onclick="app.testServerUrl()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition shrink-0">
+                        Testar URL <i class="fa-solid fa-bolt ml-1"></i>
+                    </button>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                    <div class="bg-cine-dark p-3 rounded-xl border border-cine-border">
-                        <span class="text-gray-500 block text-[10px] uppercase font-bold">Dica 1: Ano & Gênero</span>
-                        <span id="hint-1" class="text-gray-200 font-semibold">🔒 Bloqueado...</span>
-                    </div>
-                    <div class="bg-cine-dark p-3 rounded-xl border border-cine-border">
-                        <span class="text-gray-500 block text-[10px] uppercase font-bold">Dica 2: Elenco Principal</span>
-                        <span id="hint-2" class="text-gray-200 font-semibold">🔒 Bloqueado...</span>
-                    </div>
-                    <div class="bg-cine-dark p-3 rounded-xl border border-cine-border">
-                        <span class="text-gray-500 block text-[10px] uppercase font-bold">Dica 3: Iniciais do Título</span>
-                        <span id="hint-3" class="text-gray-200 font-semibold font-mono">🔒 Bloqueado...</span>
-                    </div>
+                <div id="test-server-output" class="p-3 bg-slate-950 rounded-lg font-mono text-xs text-slate-400 min-h-[60px] border border-slate-800">
+                    Insira a URL HTTPS do seu servidor Python (Ngrok/Render) para verificar a conectividade e política CORS...
                 </div>
             </div>
 
-            <!-- Answer Section -->
-            <div class="grid md:grid-cols-3 gap-6">
-                <!-- Answer Input Form -->
-                <div class="md:col-span-2 bg-cine-card border border-cine-border rounded-2xl p-5 space-y-4">
-                    <div id="answer-container-text">
-                        <label class="text-xs font-semibold text-gray-300 block mb-2">Qual é o título deste filme?</label>
-                        <form id="form-submit-answer" class="flex gap-2">
-                            <input type="text" id="input-guess" placeholder="Digite o nome do filme..." autocomplete="off" class="flex-1 bg-cine-dark border border-cine-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-gold-600">
-                            <button type="submit" id="btn-submit-guess" class="px-6 py-3 rounded-xl gold-button text-black font-bold text-sm tracking-wide transition">
-                                Enviar
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Multiple Choice Alternatives Mode (Fallback / Auto-generated) -->
-                    <div id="answer-container-options" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <!-- Rendered dynamically -->
-                    </div>
-
-                    <!-- Feedback message -->
-                    <div id="guess-feedback" class="hidden text-center py-2 text-sm font-bold rounded-xl"></div>
-                </div>
-
-                <!-- Live Scoreboard -->
-                <div class="bg-cine-card border border-cine-border rounded-2xl p-4 flex flex-col justify-between">
-                    <div>
-                        <h4 class="font-cinzel text-xs font-bold text-gray-300 uppercase tracking-wider mb-3 flex items-center gap-2">
-                            <i class="fa-solid fa-trophy text-gold-500"></i> Placar ao Vivo
-                        </h4>
-                        <div id="live-scoreboard-list" class="space-y-2 text-xs">
-                            <!-- Rendered dynamically -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= VIEW 4: RESULTS / PODIUM ================= -->
-        <div id="view-results" class="hidden space-y-8 max-w-3xl mx-auto w-full text-center py-6">
-            <div class="space-y-2">
-                <span class="text-xs font-bold text-gold-500 uppercase tracking-widest">Fim da Disputa</span>
-                <h2 class="text-4xl md:text-5xl font-cinzel font-black gold-gradient-text">Pódio do Cinema</h2>
-                <p class="text-gray-400 text-sm">Confira os maiores cinéfilos da sala!</p>
-            </div>
-
-            <!-- Podium Stage -->
-            <div id="podium-container" class="flex justify-center items-end gap-3 md:gap-6 pt-10 pb-6 min-h-[260px]">
-                <!-- Rendered dynamically -->
-            </div>
-
-            <!-- Final Leaderboard Table -->
-            <div class="bg-cine-card border border-cine-border rounded-2xl p-6 text-left max-w-xl mx-auto">
-                <h3 class="font-cinzel font-bold text-white text-base border-b border-cine-border pb-3 mb-4">
-                    Classificação Geral
-                </h3>
-                <div id="final-leaderboard-list" class="space-y-3">
-                    <!-- Rendered dynamically -->
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex justify-center gap-4">
-                <button id="btn-back-to-home" class="px-8 py-3.5 rounded-xl gold-button text-black font-bold text-sm tracking-wide shadow-xl flex items-center gap-2">
-                    <i class="fa-solid fa-rotate-right"></i> Jogar Novamente
+            <div class="flex justify-end">
+                <button onclick="app.closeDiagnosticModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-lg">
+                    Entendi e Fechar
                 </button>
             </div>
         </div>
+    </div>
 
-    </main>
-
-    <!-- Modal 1: Python Server Code -->
-    <div id="modal-python-server" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-cine-card border border-cine-border rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl">
-            <div class="p-5 border-b border-cine-border flex justify-between items-center">
+    <!-- PYTHON CODE MODAL (FULFILLS USER REQUIREMENT 2 - OPTION 1) -->
+    <div id="modal-python-code" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel max-w-3xl w-full p-6 md:p-8 rounded-2xl border-blue-500/40 space-y-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div class="flex items-center gap-3">
-                    <i class="fa-brands fa-python text-yellow-500 text-2xl"></i>
+                    <div class="p-2 bg-blue-500/20 text-blue-400 rounded-lg">
+                        <i class="fa-brands fa-python text-2xl"></i>
+                    </div>
                     <div>
-                        <h3 class="font-cinzel font-bold text-white text-lg">Servidor Python (VS Code)</h3>
-                        <p class="text-xs text-gray-400">Código pronto para rodar com Flask-SocketIO</p>
+                        <h3 class="font-cinzel text-xl font-bold text-slate-100">Código do Servidor Python Corrigido</h3>
+                        <p class="text-xs text-slate-400">Flask + Socket.IO com suporte a CORS e suporte ao GitHub Pages</p>
                     </div>
                 </div>
-                <button class="btn-close-modal text-gray-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="app.closePythonCodeModal()" class="text-slate-400 hover:text-slate-100 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
-            <div class="p-6 overflow-y-auto space-y-4 text-xs text-gray-300">
-                <p>Se preferir hospedar seu próprio servidor websocket em Python usando o VS Code em vez do Firebase, instale as dependências e rode o script abaixo:</p>
-                <div class="bg-cine-dark p-3 rounded-lg border border-cine-border font-mono text-gold-400">
-                    pip install flask flask-socketio eventlet
-                </div>
+            <!-- Copyable Instructions -->
+            <div class="space-y-3 text-xs text-slate-300">
+                <ol class="list-decimal list-inside space-y-1 font-semibold text-amber-300">
+                    <li>Instale as dependências no terminal: <code>pip install flask flask-cors flask-socketio eventlet</code></li>
+                    <li>Salve o código abaixo como <code>server.py</code> e execute: <code>python server.py</code></li>
+                    <li>Abra outro terminal e gere a URL HTTPS com Ngrok: <code>ngrok http 5000</code></li>
+                    <li>Cole a URL HTTPS gerada no menu do jogo no campo "URL do Servidor Python".</li>
+                </ol>
 
                 <div class="relative">
-                    <pre class="bg-cine-dark p-4 rounded-xl border border-cine-border font-mono text-[11px] text-green-400 overflow-x-auto leading-relaxed select-all" id="code-python-server">
-# server.py - Servidor WebSocket para CineQuote Showdown
-from flask import Flask, render_template
+                    <button onclick="app.copyPythonCode()" class="absolute top-3 right-3 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-[11px] shadow">
+                        <i class="fa-solid fa-copy mr-1"></i> Copiar Código
+                    </button>
+                    <pre id="python-code-block" class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-emerald-400 font-mono text-[11px] overflow-x-auto leading-relaxed">
+import eventlet
+eventlet.monkey_patch()
+
+from flask import Flask, request
+from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room, leave_room
-import random, string
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'cinequote_secret_key'
-socketio = SocketIO(app, cors_allowed_origins="*")
+# Permite CORS para qualquer origem (incluindo GitHub Pages)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-rooms = {} # Guarda o estado das salas
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+
+rooms = {}
+
+@app.route('/')
+def index():
+    return {"status": "Servidor CineQuote Online!", "cors": "enabled"}
 
 @socketio.on('create_room')
 def handle_create_room(data):
-    room_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
-    rooms[room_code] = {
-        'host': data['username'],
-        'players': {request.sid: {'name': data['username'], 'score': 0, 'ready': True}},
-        'settings': data.get('settings', {'roundTime': 25, 'maxRounds': 8})
-    }
-    join_room(room_code)
-    emit('room_created', {'roomCode': room_code, 'room': rooms[room_code]}, room=room_code)
+    room = data.get('room')
+    player = data.get('player')
+    join_room(room)
+    rooms[room] = {'host': request.sid, 'players': [player]}
+    emit('room_created', {'room': room, 'players': rooms[room]['players']}, to=room)
 
 @socketio.on('join_room')
 def handle_join_room(data):
-    code = data['roomCode'].upper()
-    if code in rooms:
-        join_room(code)
-        rooms[code]['players'][request.sid] = {'name': data['username'], 'score': 0, 'ready': False}
-        emit('player_joined', {'players': rooms[code]['players']}, room=code)
+    room = data.get('room')
+    player = data.get('player')
+    if room in rooms:
+        join_room(room)
+        rooms[room]['players'].append(player)
+        emit('player_joined', {'player': player, 'players': rooms[room]['players']}, to=room)
     else:
-        emit('error', {'message': 'Sala não encontrada!'})
+        emit('error', {'message': 'Sala não encontrada'})
 
 @socketio.on('send_chat')
 def handle_chat(data):
-    emit('new_chat', {'user': data['username'], 'msg': data['message']}, room=data['roomCode'])
+    emit('chat_message', data, to=data.get('room'))
+
+@socketio.on('submit_guess')
+def handle_guess(data):
+    emit('guess_result', data, to=data.get('room'))
 
 if __name__ == '__main__':
-    print("🎬 Servidor CineQuote rodando em http://localhost:5000")
+    print("🚀 Servidor CineQuote rodando na porta 5000...")
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)</pre>
                 </div>
             </div>
 
-            <div class="p-4 border-t border-cine-border flex justify-end gap-3">
-                <button id="btn-copy-python-code" class="px-4 py-2 bg-gold-600 hover:bg-gold-500 text-black font-bold rounded-xl text-xs flex items-center gap-2">
-                    <i class="fa-solid fa-copy"></i> Copiar Código Python
+            <div class="flex justify-end">
+                <button onclick="app.closePythonCodeModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-lg">
+                    Fechar
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal 2: GitHub Pages Guide -->
-    <div id="modal-github-guide" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-cine-card border border-cine-border rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl">
-            <div class="p-5 border-b border-cine-border flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <i class="fa-brands fa-github text-white text-2xl"></i>
-                    <div>
-                        <h3 class="font-cinzel font-bold text-white text-lg">Como Publicar no GitHub Pages</h3>
-                        <p class="text-xs text-gray-400">Coloque seu jogo online de graça em 3 minutos</p>
-                    </div>
-                </div>
-                <button class="btn-close-modal text-gray-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <div class="p-6 overflow-y-auto space-y-4 text-xs text-gray-300">
-                <ol class="list-decimal list-inside space-y-3 leading-relaxed">
-                    <li>Crie uma conta gratuita em <strong class="text-gold-400">github.com</strong> caso não tenha.</li>
-                    <li>Crie um novo repositório público chamado <code class="bg-cine-dark px-2 py-0.5 rounded text-green-400">meu-jogo-cinema</code>.</li>
-                    <li>Faça o upload deste arquivo nomeando-o exatamente como <code class="bg-cine-dark px-2 py-0.5 rounded text-gold-400">index.html</code> no repositório.</li>
-                    <li>Vá nas configurações do repositório (**Settings** -> **Pages**).</li>
-                    <li>Em **Branch**, selecione <code class="bg-cine-dark px-2 py-0.5 rounded text-white">main</code> (ou `master`) e clique em **Save**.</li>
-                    <li>Aguarde 1 minuto e seu site estará online no link fornecido pelo GitHub! (ex: `https://seu-usuario.github.io/meu-jogo-cinema`).</li>
-                </ol>
-            </div>
-
-            <div class="p-4 border-t border-cine-border flex justify-end">
-                <button class="btn-close-modal px-5 py-2 bg-cine-dark border border-cine-border text-white font-bold rounded-xl text-xs">
-                    Entendi!
-                </button>
-            </div>
-        </div>
+    <!-- Notification Toast Element -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden px-4 py-3 rounded-xl bg-slate-900 border border-amber-500/50 text-slate-100 font-semibold text-xs shadow-2xl flex items-center gap-3 transition">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-amber-400 text-lg"></i>
+        <span id="toast-msg">Mensagem de notificação</span>
     </div>
 
-    <!-- Edit Profile Modal -->
-    <div id="modal-edit-profile" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-cine-card border border-cine-border rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
-            <h3 class="font-cinzel font-bold text-white text-lg text-center">Editar Seu Perfil</h3>
-
-            <div class="space-y-3">
-                <div>
-                    <label class="text-xs font-semibold text-gray-400 block mb-1">Seu Nome / Apelido</label>
-                    <input type="text" id="input-edit-username" class="w-full bg-cine-dark border border-cine-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-gold-600" maxlength="14">
-                </div>
-
-                <div>
-                    <label class="text-xs font-semibold text-gray-400 block mb-1">Escolha seu Avatar</label>
-                    <div class="grid grid-cols-5 gap-2 text-center text-xl" id="avatar-selector">
-                        <button class="btn-avatar p-2 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500">🎬</button>
-                        <button class="btn-avatar p-2 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500">🍿</button>
-                        <button class="btn-avatar p-2 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500">🏆</button>
-                        <button class="btn-avatar p-2 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500">🕶️</button>
-                        <button class="btn-avatar p-2 rounded-xl bg-cine-dark border border-cine-border hover:border-gold-500">🎥</button>
-                    </div>
-                </div>
-            </div>
-
-            <button id="btn-save-profile" class="w-full py-2.5 rounded-xl gold-button text-black font-bold text-xs uppercase tracking-wider">
-                Salvar Alterações
-            </button>
-        </div>
-    </div>
-
-    <!-- Firebase Module Scripts -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, addDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const MOVIE_QUOTES = [
+    <script>
+        // Comprehensive Movie Database in Portuguese with hints
+        const MOVIE_DATABASE = [
             {
-                pt: "Vou fazer uma oferta que ele não poderá recusar.",
-                en: "I'm gonna make him an offer he can't refuse.",
-                title: "O Poderoso Chefão",
-                aliases: ["o poderoso chefao", "godfather", "the godfather"],
-                year: "1972",
-                genre: "Crime / Drama",
-                cast: "Marlon Brando, Al Pacino",
-                initials: "O P C"
-            },
-            {
-                pt: "Que a Força esteja com você.",
-                en: "May the Force be with you.",
+                id: 1,
+                quote: "Que a Força esteja com você.",
                 title: "Star Wars",
-                aliases: ["star wars", "guerra nas estrelas", "star wars episodio iv"],
-                year: "1977",
+                aliases: ["star wars", "guerra nas estrelas", "star wars episodio iv", "star wars episodio 4"],
+                year: 1977,
                 genre: "Ficção Científica",
-                cast: "Mark Hamill, Harrison Ford",
-                initials: "S W"
+                director: "George Lucas",
+                stars: "Harrison Ford, Mark Hamill"
             },
             {
-                pt: "Houston, nós temos um problema.",
-                en: "Houston, we have a problem.",
-                title: "Apollo 13",
-                aliases: ["apollo 13", "apolo 13"],
-                year: "1995",
-                genre: "Aventura / Drama",
-                cast: "Tom Hanks, Kevin Bacon",
-                initials: "A 13"
-            },
-            {
-                pt: "Hasta la vista, baby.",
-                en: "Hasta la vista, baby.",
-                title: "O Exterminador do Futuro 2",
-                aliases: ["o exterminador do futuro 2", "terminator 2", "exterminador do futuro 2"],
-                year: "1991",
-                genre: "Ação / Ficção Científica",
-                cast: "Arnold Schwarzenegger",
-                initials: "O E D F 2"
-            },
-            {
-                pt: "Por que tão sério?",
-                en: "Why so serious?",
-                title: "Batman: O Cavaleiro das Trevas",
-                aliases: ["batman o cavaleiro das trevas", "the dark knight", "batman cavaleiro das trevas"],
-                year: "2008",
-                genre: "Ação / Crime",
-                cast: "Christian Bale, Heath Ledger",
-                initials: "B : O C D T"
-            },
-            {
-                pt: "Ao infinito e além!",
-                en: "To infinity and beyond!",
-                title: "Toy Story",
-                aliases: ["toy story", "toy story 1"],
-                year: "1995",
-                genre: "Animação / Família",
-                cast: "Tom Hanks, Tim Allen (Vozes)",
-                initials: "T S"
-            },
-            {
-                pt: "A primeira regra do Clube da Luta é: você não fala sobre o Clube da Luta.",
-                en: "The first rule of Fight Club is: You do not talk about Fight Club.",
-                title: "Clube da Luta",
-                aliases: ["clube da luta", "fight club"],
-                year: "1999",
-                genre: "Drama / Thriller",
-                cast: "Brad Pitt, Edward Norton",
-                initials: "C D L"
-            },
-            {
-                pt: "Eu vejo pessoas mortas.",
-                en: "I see dead people.",
+                id: 2,
+                quote: "Eu vejo pessoas mortas.",
                 title: "O Sexto Sentido",
-                aliases: ["o sexto sentido", "the sixth sense", "sexto sentido"],
-                year: "1999",
-                genre: "Mistério / Terror",
-                cast: "Bruce Willis, Haley Joel Osment",
-                initials: "O S S"
+                aliases: ["o sexto sentido", "sexto sentido"],
+                year: 1999,
+                genre: "Suspense / Drama",
+                director: "M. Night Shyamalan",
+                stars: "Bruce Willis, Haley Joel Osment"
             },
             {
-                pt: "Siga o coelho branco.",
-                en: "Follow the white rabbit.",
-                title: "Matrix",
-                aliases: ["matrix", "the matrix"],
-                year: "1999",
-                genre: "Ficção Científica",
-                cast: "Keanu Reeves, Laurence Fishburne",
-                initials: "M A T R I X"
+                id: 3,
+                quote: "Hasta la vista, baby.",
+                title: "O Exterminador do Futuro 2",
+                aliases: ["o exterminador do futuro 2", "exterminador do futuro 2", "terminator 2", "exterminador 2"],
+                year: 1991,
+                genre: "Ação / Ficção",
+                director: "James Cameron",
+                stars: "Arnold Schwarzenegger"
             },
             {
-                pt: "Eu sou o rei do mundo!",
-                en: "I'm the king of the world!",
-                title: "Titanic",
-                aliases: ["titanic"],
-                year: "1997",
-                genre: "Romance / Drama",
-                cast: "Leonardo DiCaprio, Kate Winslet",
-                initials: "T I T A N I C"
-            },
-            {
-                pt: "Com grandes poderes vêm grandes responsabilidades.",
-                en: "With great power comes great responsibility.",
+                id: 4,
+                quote: "Com grandes poderes vêm grandes responsabilidades.",
                 title: "Homem-Aranha",
                 aliases: ["homem aranha", "homem-aranha", "spider man", "spiderman"],
-                year: "2002",
-                genre: "Ação / Aventura",
-                cast: "Tobey Maguire, Willem Dafoe",
-                initials: "H - A"
+                year: 2002,
+                genre: "Ação / Super-herói",
+                director: "Sam Raimi",
+                stars: "Tobey Maguire, Willem Dafoe"
             },
             {
-                pt: "Meu precioso...",
-                en: "My precious...",
-                title: "O Senhor dos Anéis",
-                aliases: ["o senhor dos aneis", "lord of the rings", "senhor dos aneis"],
-                year: "2002",
+                id: 5,
+                quote: "Ao infinito e além!",
+                title: "Toy Story",
+                aliases: ["toy story", "toy story 1"],
+                year: 1995,
+                genre: "Animação / Aventura",
+                director: "John Lasseter",
+                stars: "Buzz Lightyear, Woody"
+            },
+            {
+                id: 6,
+                quote: "Minha mãe sempre dizia: a vida é como uma caixa de chocolates.",
+                title: "Forrest Gump",
+                aliases: ["forrest gump", "forrest gump o contador de historias"],
+                year: 1994,
+                genre: "Drama / Romance",
+                director: "Robert Zemeckis",
+                stars: "Tom Hanks"
+            },
+            {
+                id: 7,
+                quote: "Por que tão sério?",
+                title: "Batman: O Cavaleiro das Trevas",
+                aliases: ["batman o cavaleiro das trevas", "o cavaleiro das trevas", "batman cavaleiro das trevas", "batman"],
+                year: 2008,
+                genre: "Ação / Policial",
+                director: "Christopher Nolan",
+                stars: "Heath Ledger, Christian Bale"
+            },
+            {
+                id: 8,
+                quote: "Eu sou o rei do mundo!",
+                title: "Titanic",
+                aliases: ["titanic"],
+                year: 1997,
+                genre: "Romance / Drama",
+                director: "James Cameron",
+                stars: "Leonardo DiCaprio, Kate Winslet"
+            },
+            {
+                id: 9,
+                quote: "Você é um bruxo, Harry.",
+                title: "Harry Potter e a Pedra Filosofal",
+                aliases: ["harry potter e a pedra filosofal", "harry potter 1", "harry potter"],
+                year: 2001,
                 genre: "Fantasia / Aventura",
-                cast: "Elijah Wood, Andy Serkis",
-                initials: "O S D A"
+                director: "Chris Columbus",
+                stars: "Daniel Radcliffe, Emma Watson"
+            },
+            {
+                id: 10,
+                quote: "Primeira regra do Clube da Luta: você não fala sobre o Clube da Luta.",
+                title: "Clube da Luta",
+                aliases: ["clube da luta", "fight club"],
+                year: 1999,
+                genre: "Drama / Suspense",
+                director: "David Fincher",
+                stars: "Brad Pitt, Edward Norton"
+            },
+            {
+                id: 11,
+                quote: "Wakanda para sempre!",
+                title: "Pantera Negra",
+                aliases: ["pantera negra", "black panther"],
+                year: 2018,
+                genre: "Ação / Super-herói",
+                director: "Ryan Coogler",
+                stars: "Chadwick Boseman"
+            },
+            {
+                id: 12,
+                quote: "Eu sou inevitável.",
+                title: "Vingadores: Ultimato",
+                aliases: ["vingadores ultimato", "vingadores: ultimato", "ultimato", "avengers endgame"],
+                year: 2019,
+                genre: "Ação / Sci-Fi",
+                director: "Irmãos Russo",
+                stars: "Robert Downey Jr., Josh Brolin"
+            },
+            {
+                id: 13,
+                quote: "Houston, nós temos um problema.",
+                title: "Apollo 13",
+                aliases: ["apollo 13", "apolo 13"],
+                year: 1995,
+                genre: "Drama / História",
+                director: "Ron Howard",
+                stars: "Tom Hanks, Kevin Bacon"
+            },
+            {
+                id: 14,
+                quote: "Não há lugar como a nossa casa.",
+                title: "O Mágico de Oz",
+                aliases: ["o magico de oz", "magico de oz"],
+                year: 1939,
+                genre: "Fantasia / Musical",
+                director: "Victor Fleming",
+                stars: "Judy Garland"
+            },
+            {
+                id: 15,
+                quote: "Siga o coelho branco.",
+                title: "Matrix",
+                aliases: ["matrix", "the matrix"],
+                year: 1999,
+                genre: "Ficção Científica",
+                director: "Lana e Lilly Wachowski",
+                stars: "Keanu Reeves, Laurence Fishburne"
             }
         ];
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cinequote-app';
-        let firebaseConfig = null;
-        if (typeof __firebase_config !== 'undefined') {
-            try { firebaseConfig = JSON.parse(__firebase_config); } catch(e){}
-        }
+        // Web Audio API Synthesizer (No external audio files required)
+        class AudioSynth {
+            constructor() {
+                this.ctx = null;
+            }
 
-        // App State
-        const state = {
-            user: {
-                id: 'usr_' + Math.random().toString(36).substr(2, 6),
-                name: 'Cinéfilo_' + Math.floor(Math.random() * 899 + 100),
-                avatar: '🎬'
-            },
-            mode: 'solo', // 'solo' or 'firebase'
-            roomCode: null,
-            roomData: null,
-            isHost: false,
-            currentRound: 0,
-            score: 0,
-            timerInterval: null,
-            timeLeft: 25,
-            unsubscribeRoom: null,
-            hasGuessedCurrentRound: false
-        };
-
-        // Firebase References
-        let db = null;
-        let auth = null;
-
-        const soundFX = {
-            ctx: null,
             init() {
-                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-            },
-            playTick() {
-                this.init();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
-                gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.05);
-            },
-            playCorrect() {
-                this.init();
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, now); // C5
-                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
-                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(now + 0.4);
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
             }
-        };
 
-        const views = {
-            home: document.getElementById('view-home'),
-            lobby: document.getElementById('view-lobby'),
-            game: document.getElementById('view-game'),
-            results: document.getElementById('view-results')
-        };
+            playTone(freq, type = 'sine', duration = 0.15, vol = 0.2) {
+                try {
+                    this.init();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {
+                    // Audio context may be blocked before interaction
+                }
+            }
 
-        function switchView(target) {
-            Object.keys(views).forEach(k => views[k].classList.add('hidden'));
-            views[target].classList.remove('hidden');
+            sfxCorrect() {
+                this.playTone(523.25, 'triangle', 0.1, 0.2); // C5
+                setTimeout(() => this.playTone(659.25, 'triangle', 0.1, 0.2), 80); // E5
+                setTimeout(() => this.playTone(783.99, 'triangle', 0.2, 0.25), 160); // G5
+            }
+
+            sfxWrong() {
+                this.playTone(220, 'sawtooth', 0.15, 0.15);
+                setTimeout(() => this.playTone(180, 'sawtooth', 0.25, 0.15), 100);
+            }
+
+            sfxTick() {
+                this.playTone(800, 'sine', 0.03, 0.05);
+            }
+
+            sfxWin() {
+                this.playTone(440, 'triangle', 0.15, 0.2);
+                setTimeout(() => this.playTone(554.37, 'triangle', 0.15, 0.2), 120);
+                setTimeout(() => this.playTone(659.25, 'triangle', 0.15, 0.2), 240);
+                setTimeout(() => this.playTone(880, 'triangle', 0.4, 0.3), 360);
+            }
         }
 
-        function showToast(text, type = 'info') {
-            const toast = document.getElementById('notification-toast');
-            const toastText = document.getElementById('notification-text');
-            toastText.textContent = text;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3500);
-        }
+        const audio = new AudioSynth();
 
-        async function initFirebase() {
-            if (!firebaseConfig) return false;
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+        class CineQuoteApp {
+            constructor() {
+                this.playerName = "Cinefilo007";
+                this.networkMode = "peerjs"; // 'peerjs' or 'python'
+                this.pythonUrl = "";
+                
+                // Game Room State
+                this.roomCode = "";
+                this.isHost = false;
+                this.peer = null;
+                this.connections = []; // Host: array of player conns
+                this.hostConn = null;  // Guest: conn to host
+                this.socket = null;    // Python SocketIO connection
+                
+                // Room Settings & Scores
+                this.players = []; // [{ id, name, score, isHost }]
+                this.settings = {
+                    timePerRound: 30,
+                    totalRounds: 5
+                };
+                
+                // Game Loop State
+                this.currentRound = 0;
+                this.currentQuote = null;
+                this.usedQuoteIds = new Set();
+                this.timerInterval = null;
+                this.timeLeft = 30;
+                this.hasGuessedCorrectly = false;
+            }
 
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
+            init() {
+                // Parse direct room code from URL query parameters if present (e.g. ?room=CINE89)
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('room')) {
+                    document.getElementById('input-room-code').value = params.get('room').toUpperCase();
+                    this.showToast("Código de sala detectado no link!", "info");
+                }
+            }
+
+            // Screen Navigation Helper
+            showScreen(screenId) {
+                const screens = ['screen-landing', 'screen-lobby', 'screen-game', 'screen-results'];
+                screens.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.add('hidden');
+                });
+                const target = document.getElementById(screenId);
+                if (target) target.classList.remove('hidden');
+            }
+
+            // Notification Toast Helper
+            showToast(msg, type = "success") {
+                const toast = document.getElementById('toast');
+                const toastMsg = document.getElementById('toast-msg');
+                const toastIcon = document.getElementById('toast-icon');
+                
+                toastMsg.textContent = msg;
+                if (type === "error") {
+                    toastIcon.className = "fa-solid fa-circle-xmark text-red-400 text-lg";
+                } else if (type === "info") {
+                    toastIcon.className = "fa-solid fa-circle-info text-blue-400 text-lg";
                 } else {
-                    await signInAnonymously(auth);
+                    toastIcon.className = "fa-solid fa-circle-check text-amber-400 text-lg";
                 }
-                return true;
-            } catch (err) {
-                console.warn("Firebase Auth fallback to local mode:", err);
-                return false;
-            }
-        }
-
-        function normalizeString(str) {
-            return str.toLowerCase()
-                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                .replace(/[^a-z0-9]/g, "").trim();
-        }
-
-        function checkAnswer(userGuess, currentQuote) {
-            const normGuess = normalizeString(userGuess);
-            if (!normGuess) return false;
-
-            const normTitle = normalizeString(currentQuote.title);
-            if (normGuess === normTitle) return true;
-
-            return currentQuote.aliases.some(alias => normalizeString(alias) === normGuess);
-        }
-
-        function startSoloGame() {
-            state.mode = 'solo';
-            state.roomCode = 'SOLO';
-            state.score = 0;
-            state.currentRound = 0;
-            state.isHost = true;
-            
-            // Generate shuffle list
-            state.shuffledQuotes = [...MOVIE_QUOTES].sort(() => Math.random() - 0.5).slice(0, 8);
-            
-            switchView('game');
-            runRoundSolo();
-        }
-
-        function runRoundSolo() {
-            if (state.currentRound >= state.shuffledQuotes.length) {
-                showResultsSolo();
-                return;
+                
+                toast.classList.remove('hidden');
+                setTimeout(() => toast.classList.add('hidden'), 3500);
             }
 
-            state.hasGuessedCurrentRound = false;
-            const quote = state.shuffledQuotes[state.currentRound];
-            
-            document.getElementById('game-round-indicator').textContent = `${state.currentRound + 1} / ${state.shuffledQuotes.length}`;
-            document.getElementById('quote-text-pt').textContent = `"${quote.pt}"`;
-            document.getElementById('quote-text-en').textContent = `Original: "${quote.en}"`;
+            // Network Mode Selection
+            setNetworkMode(mode) {
+                this.networkMode = mode;
+                const btnPeer = document.getElementById('btn-mode-peerjs');
+                const btnPy = document.getElementById('btn-mode-python');
+                const containerPy = document.getElementById('container-python-url');
+                const badge = document.getElementById('badge-network-status');
 
-            // Reset hints
-            document.getElementById('hint-1').textContent = "🔒 Bloqueado...";
-            document.getElementById('hint-2').textContent = "🔒 Bloqueado...";
-            document.getElementById('hint-3').textContent = "🔒 Bloqueado...";
-            document.getElementById('input-guess').value = '';
-            document.getElementById('guess-feedback').classList.add('hidden');
-            document.getElementById('btn-submit-guess').disabled = false;
-
-            // Render live scoreboard
-            renderLiveScoreboard([
-                { name: state.user.name, avatar: state.user.avatar, score: state.score },
-                { name: 'CineBot 🤖', avatar: '🤖', score: Math.floor(state.currentRound * 110) }
-            ]);
-
-            // Start Timer
-            clearInterval(state.timerInterval);
-            state.timeLeft = 25;
-            document.getElementById('game-timer').textContent = state.timeLeft;
-
-            state.timerInterval = setInterval(() => {
-                state.timeLeft--;
-                document.getElementById('game-timer').textContent = state.timeLeft;
-                soundFX.playTick();
-
-                // Progress Hints
-                if (state.timeLeft === 18) {
-                    document.getElementById('hint-1').textContent = `${quote.year} | ${quote.genre}`;
+                if (mode === 'peerjs') {
+                    btnPeer.className = "p-3 rounded-xl border border-amber-500/60 bg-amber-500/10 text-amber-300 text-left transition flex flex-col justify-between hover:bg-amber-500/20";
+                    btnPy.className = "p-3 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 text-left transition flex flex-col justify-between hover:border-slate-700";
+                    containerPy.classList.add('hidden');
+                    badge.className = "px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold flex items-center gap-1.5";
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Pronto (PeerJS)`;
+                } else {
+                    btnPy.className = "p-3 rounded-xl border border-blue-500/60 bg-blue-500/10 text-blue-300 text-left transition flex flex-col justify-between hover:bg-blue-500/20";
+                    btnPeer.className = "p-3 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 text-left transition flex flex-col justify-between hover:border-slate-700";
+                    containerPy.classList.remove('hidden');
+                    badge.className = "px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold flex items-center gap-1.5";
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Modo Python`;
                 }
-                if (state.timeLeft === 12) {
-                    document.getElementById('hint-2').textContent = quote.cast;
-                }
-                if (state.timeLeft === 6) {
-                    document.getElementById('hint-3').textContent = quote.initials;
-                }
-
-                if (state.timeLeft <= 0) {
-                    clearInterval(state.timerInterval);
-                    handleTimeOutSolo(quote);
-                }
-            }, 1000);
-        }
-
-        function handleTimeOutSolo(quote) {
-            const feedback = document.getElementById('guess-feedback');
-            feedback.className = "text-center py-2 text-xs font-bold rounded-xl bg-red-900/60 text-red-300 border border-red-700/50";
-            feedback.textContent = `Tempo esgotado! O filme era: "${quote.title}"`;
-            feedback.classList.remove('hidden');
-
-            setTimeout(() => {
-                state.currentRound++;
-                runRoundSolo();
-            }, 3000);
-        }
-
-        function submitGuessSolo(guess) {
-            if (state.hasGuessedCurrentRound) return;
-
-            const quote = state.shuffledQuotes[state.currentRound];
-            const isCorrect = checkAnswer(guess, quote);
-            const feedback = document.getElementById('guess-feedback');
-
-            if (isCorrect) {
-                state.hasGuessedCurrentRound = true;
-                soundFX.playCorrect();
-                const points = Math.max(100, state.timeLeft * 20);
-                state.score += points;
-                document.getElementById('game-my-score').textContent = `${state.score} pts`;
-
-                feedback.className = "text-center py-2 text-xs font-bold rounded-xl bg-green-900/60 text-green-300 border border-green-700/50";
-                feedback.textContent = `🎉 Correto! +${points} pontos!`;
-                feedback.classList.remove('hidden');
-
-                clearInterval(state.timerInterval);
-                document.getElementById('btn-submit-guess').disabled = true;
-
-                setTimeout(() => {
-                    state.currentRound++;
-                    runRoundSolo();
-                }, 2500);
-            } else {
-                feedback.className = "text-center py-2 text-xs font-bold rounded-xl bg-red-900/40 text-red-400 border border-red-800/30";
-                feedback.textContent = `❌ Título incorreto. Tente novamente!`;
-                feedback.classList.remove('hidden');
-            }
-        }
-
-        function showResultsSolo() {
-            switchView('results');
-            if (window.confetti) {
-                window.confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             }
 
-            const podium = document.getElementById('podium-container');
-            podium.innerHTML = `
-                <div class="flex flex-col items-center">
-                    <div class="w-16 h-16 rounded-full bg-gold-600/20 border-2 border-gold-500 flex items-center justify-center text-2xl mb-2">${state.user.avatar}</div>
-                    <span class="text-xs font-bold text-gray-200">${state.user.name}</span>
-                    <div class="w-24 bg-gradient-to-t from-gold-700 to-gold-500 h-32 rounded-t-xl flex items-center justify-center font-bold text-black text-2xl mt-2 shadow-xl">
-                        1º
-                    </div>
-                    <span class="text-xs font-mono font-bold text-gold-400 mt-1">${state.score} pts</span>
-                </div>
-            `;
+            // Modals Logic
+            openDiagnosticModal() { document.getElementById('modal-diagnostic').classList.remove('hidden'); }
+            closeDiagnosticModal() { document.getElementById('modal-diagnostic').classList.add('hidden'); }
+            openPythonCodeModal() { document.getElementById('modal-python-code').classList.remove('hidden'); }
+            closePythonCodeModal() { document.getElementById('modal-python-code').classList.add('hidden'); }
 
-            document.getElementById('final-leaderboard-list').innerHTML = `
-                <div class="flex justify-between items-center p-2 rounded-lg bg-cine-dark border border-cine-border">
-                    <span class="font-bold text-white text-xs">1. ${state.user.name} ${state.user.avatar}</span>
-                    <span class="font-mono text-gold-400 text-xs font-bold">${state.score} pts</span>
-                </div>
-            `;
-        }
-
-        async function createFirebaseRoom(roundTime, maxRounds) {
-            const hasFb = await initFirebase();
-            if (!hasFb || !db) {
-                showToast("Conexão Firebase não configurada. Entrando no modo Solo local.");
-                startSoloGame();
-                return;
-            }
-
-            const code = Math.random().toString(36).substr(2, 5).toUpperCase();
-            state.roomCode = code;
-            state.isHost = true;
-            state.mode = 'firebase';
-
-            // Firestore Room Collection Path Rule 1
-            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
-            
-            const initialData = {
-                code: code,
-                host: state.user.id,
-                status: 'LOBBY', // 'LOBBY', 'PLAYING', 'FINISHED'
-                settings: { roundTime: parseInt(roundTime), maxRounds: parseInt(maxRounds) },
-                currentRound: 0,
-                quotes: [...MOVIE_QUOTES].sort(() => Math.random() - 0.5).slice(0, parseInt(maxRounds)),
-                players: {
-                    [state.user.id]: {
-                        name: state.user.name,
-                        avatar: state.user.avatar,
-                        score: 0,
-                        ready: true
-                    }
-                },
-                chat: []
-            };
-
-            await setDoc(roomRef, initialData);
-            listenToRoom(code);
-            switchView('lobby');
-        }
-
-        async function joinFirebaseRoom(code) {
-            const hasFb = await initFirebase();
-            if (!hasFb || !db) {
-                showToast("Modo Firebase indisponível. Iniciando partida Solo.");
-                startSoloGame();
-                return;
-            }
-
-            const cleanCode = code.trim().toUpperCase();
-            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', cleanCode);
-            const snap = await getDoc(roomRef);
-
-            if (!snap.exists()) {
-                showToast("Sala não encontrada! Verifique o código.");
-                return;
-            }
-
-            state.roomCode = cleanCode;
-            state.isHost = false;
-            state.mode = 'firebase';
-
-            // Add player
-            await updateDoc(roomRef, {
-                [`players.${state.user.id}`]: {
-                    name: state.user.name,
-                    avatar: state.user.avatar,
-                    score: 0,
-                    ready: true
-                }
-            });
-
-            listenToRoom(cleanCode);
-            switchView('lobby');
-        }
-
-        function listenToRoom(code) {
-            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
-            
-            state.unsubscribeRoom = onSnapshot(roomRef, (snapshot) => {
-                if (!snapshot.exists()) return;
-                const data = snapshot.data();
-                state.roomData = data;
-
-                // Sync view according to room status
-                if (data.status === 'LOBBY') {
-                    renderLobbyData(data);
-                } else if (data.status === 'PLAYING') {
-                    if (views.game.classList.contains('hidden')) {
-                        switchView('game');
-                    }
-                    renderGameData(data);
-                } else if (data.status === 'FINISHED') {
-                    renderResultsData(data);
-                }
-            }, (error) => {
-                console.error("Firestore sync error:", error);
-            });
-        }
-
-        function renderLobbyData(data) {
-            document.getElementById('lobby-room-code').textContent = data.code;
-            const players = Object.values(data.players || {});
-            document.getElementById('lobby-player-count').textContent = `${players.length} / 8`;
-
-            const listEl = document.getElementById('lobby-player-list');
-            listEl.innerHTML = players.map(p => `
-                <div class="bg-cine-dark p-3 rounded-xl border border-cine-border flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="text-lg">${p.avatar}</span>
-                        <span class="text-xs font-semibold text-gray-200">${p.name}</span>
-                    </div>
-                    <span class="text-[10px] px-2 py-0.5 rounded bg-green-900/40 text-green-400 border border-green-700/30">Pronto</span>
-                </div>
-            `).join('');
-
-            // Render Chat
-            const chatBox = document.getElementById('lobby-chat-messages');
-            chatBox.innerHTML = (data.chat || []).map(msg => `
-                <div class="bg-cine-dark/60 p-2 rounded border border-cine-border/50">
-                    <span class="font-bold text-gold-400">${msg.user}:</span>
-                    <span class="text-gray-300 ml-1">${msg.text}</span>
-                </div>
-            `).join('');
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function renderGameData(data) {
-            const currentQuote = data.quotes[data.currentRound];
-            if (!currentQuote) return;
-
-            document.getElementById('game-round-indicator').textContent = `${data.currentRound + 1} / ${data.settings.maxRounds}`;
-            document.getElementById('quote-text-pt').textContent = `"${currentQuote.pt}"`;
-            document.getElementById('quote-text-en').textContent = `Original: "${currentQuote.en}"`;
-
-            const myData = data.players[state.user.id] || { score: 0 };
-            document.getElementById('game-my-score').textContent = `${myData.score} pts`;
-
-            // Live Scoreboard
-            renderLiveScoreboard(Object.values(data.players));
-        }
-
-        function renderLiveScoreboard(players) {
-            const sorted = [...players].sort((a, b) => b.score - a.score);
-            const container = document.getElementById('live-scoreboard-list');
-            container.innerHTML = sorted.map((p, idx) => `
-                <div class="flex items-center justify-between p-2 rounded-lg bg-cine-dark border border-cine-border">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-gold-500 font-mono">#${idx + 1}</span>
-                        <span class="text-xs text-gray-200">${p.avatar} ${p.name}</span>
-                    </div>
-                    <span class="font-mono text-xs font-bold text-green-400">${p.score} pts</span>
-                </div>
-            `).join('');
-        }
-
-        function renderResultsData(data) {
-            switchView('results');
-            if (window.confetti) {
-                window.confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-            }
-
-            const sorted = Object.values(data.players || {}).sort((a, b) => b.score - a.score);
-            const podium = document.getElementById('podium-container');
-
-            podium.innerHTML = sorted.slice(0, 3).map((p, idx) => {
-                const heights = ['h-32', 'h-24', 'h-16'];
-                const orders = ['order-2', 'order-1', 'order-3'];
-                return `
-                    <div class="flex flex-col items-center ${orders[idx]}">
-                        <div class="w-12 h-12 rounded-full bg-gold-600/20 border-2 border-gold-500 flex items-center justify-center text-xl mb-1">${p.avatar}</div>
-                        <span class="text-[11px] font-bold text-gray-200">${p.name}</span>
-                        <div class="w-20 md:w-24 bg-gradient-to-t from-gold-700 to-gold-500 ${heights[idx]} rounded-t-xl flex items-center justify-center font-bold text-black text-xl mt-1 shadow-xl">
-                            ${idx + 1}º
-                        </div>
-                        <span class="text-xs font-mono font-bold text-gold-400 mt-1">${p.score} pts</span>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function speakCurrentQuote() {
-            const quoteText = document.getElementById('quote-text-pt').textContent;
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(quoteText);
-                utterance.lang = 'pt-BR';
-                utterance.rate = 0.9;
-                utterance.pitch = 0.95;
-                window.speechSynthesis.speak(utterance);
-            } else {
-                showToast("Sua voz sintetizada não é suportada neste navegador.");
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Profile Init
-            document.getElementById('user-name-display').textContent = state.user.name;
-            document.getElementById('user-avatar').textContent = state.user.avatar;
-
-            // Buttons & Navigation
-            document.getElementById('btn-logo-home').addEventListener('click', () => switchView('home'));
-
-            document.getElementById('btn-solo-bot').addEventListener('click', startSoloGame);
-
-            document.getElementById('btn-create-room').addEventListener('click', () => {
-                const roundTime = document.getElementById('select-round-time').value;
-                const maxRounds = document.getElementById('select-max-rounds').value;
-                createFirebaseRoom(roundTime, maxRounds);
-            });
-
-            document.getElementById('btn-join-room').addEventListener('click', () => {
-                const code = document.getElementById('input-room-code').value;
-                if (code.length < 3) {
-                    showToast("Por favor digite um código de sala válido.");
+            // Test user's custom Python URL for HTTPS & CORS compatibility
+            async testServerUrl() {
+                const url = document.getElementById('test-server-url').value.trim();
+                const output = document.getElementById('test-server-output');
+                if (!url) {
+                    output.innerHTML = `<span class="text-amber-400">Por favor, insira uma URL para testar!</span>`;
                     return;
                 }
-                joinFirebaseRoom(code);
-            });
 
-            document.getElementById('btn-copy-code').addEventListener('click', () => {
-                const code = state.roomCode || '';
-                const tempInput = document.createElement('input');
-                tempInput.value = code;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempInput);
-                showToast(`Código ${code} copiado para a área de transferência!`);
-            });
-
-            document.getElementById('btn-leave-room').addEventListener('click', () => {
-                if (state.unsubscribeRoom) state.unsubscribeRoom();
-                switchView('home');
-            });
-
-            document.getElementById('form-submit-answer').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const guess = document.getElementById('input-guess').value;
-                if (state.mode === 'solo') {
-                    submitGuessSolo(guess);
+                output.innerHTML = `<span class="text-blue-400">Testando conexão com ${url}...</span>`;
+                
+                try {
+                    const res = await fetch(url, { method: 'GET' });
+                    if (res.ok) {
+                        output.innerHTML = `<span class="text-emerald-400 font-bold">✅ SUCESSO! Servidor acessível via HTTPS.</span><br>Status: ${res.status} OK.<br>CORS liberado para requisições do GitHub Pages!`;
+                    } else {
+                        output.innerHTML = `<span class="text-amber-400">⚠️ Servidor respondeu com código ${res.status}. Verifique as rotas do seu Flask.</span>`;
+                    }
+                } catch (err) {
+                    output.innerHTML = `<span class="text-red-400 font-bold">❌ ERRO DE CONEXÃO / BLOQUEIO HTTPS:</span><br>${err.message}<br><br><span class="text-slate-400">Causas prováveis:<br>1. URL é HTTP simples em vez de HTTPS (GitHub Pages exige HTTPS).<br>2. Falta de cabeçalho Flask-CORS no servidor Python.<br>3. O Ngrok não está rodando no seu terminal local.</span>`;
                 }
-            });
+            }
 
-            document.getElementById('btn-speak-quote').addEventListener('click', speakCurrentQuote);
-
-            document.getElementById('btn-back-to-home').addEventListener('click', () => switchView('home'));
-
-            // Profile Edit Modal
-            document.getElementById('btn-edit-profile').addEventListener('click', () => {
-                document.getElementById('input-edit-username').value = state.user.name;
-                document.getElementById('modal-edit-profile').classList.remove('hidden');
-            });
-
-            document.getElementById('btn-save-profile').addEventListener('click', () => {
-                const newName = document.getElementById('input-edit-username').value.trim();
-                if (newName) state.user.name = newName;
-                document.getElementById('user-name-display').textContent = state.user.name;
-                document.getElementById('user-avatar').textContent = state.user.avatar;
-                document.getElementById('modal-edit-profile').classList.add('hidden');
-            });
-
-            document.querySelectorAll('.btn-avatar').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    state.user.avatar = e.target.textContent.trim();
-                    document.querySelectorAll('.btn-avatar').forEach(b => b.classList.remove('border-gold-500'));
-                    btn.classList.add('border-gold-500');
+            copyPythonCode() {
+                const code = document.getElementById('python-code-block').innerText;
+                navigator.clipboard.writeText(code).then(() => {
+                    this.showToast("Código Python copiado para a área de transferência!");
+                }).catch(() => {
+                    document.execCommand('copy');
+                    this.showToast("Código copiado!");
                 });
-            });
+            }
 
-            // Modals Controls
-            document.getElementById('btn-open-python-modal').addEventListener('click', () => {
-                document.getElementById('modal-python-server').classList.remove('hidden');
-            });
+            // Generate Random 6-char Room Code
+            generateRoomCode() {
+                const chars = "CINE8976543210";
+                let code = "";
+                for (let i = 0; i < 6; i++) {
+                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return code;
+            }
 
-            document.getElementById('btn-open-guide-modal').addEventListener('click', () => {
-                document.getElementById('modal-github-guide').classList.remove('hidden');
-            });
+            // Create Room Action
+            createRoom() {
+                this.playerName = document.getElementById('input-player-name').value.trim() || "Cinefilo" + Math.floor(Math.random() * 900 + 100);
+                this.roomCode = "CINE" + Math.floor(Math.random() * 89 + 10);
+                this.isHost = true;
+                this.players = [{ id: 'host', name: this.playerName, score: 0, isHost: true }];
 
-            document.querySelectorAll('.btn-close-modal').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.getElementById('modal-python-server').classList.add('hidden');
-                    document.getElementById('modal-github-guide').classList.add('hidden');
+                if (this.networkMode === 'peerjs') {
+                    this.initPeerJSHost();
+                } else {
+                    this.initPythonSocketHost();
+                }
+
+                this.updateLobbyUI();
+                this.showScreen('screen-lobby');
+                this.showToast(`Sala ${this.roomCode} criada com sucesso!`);
+            }
+
+            // Join Room Action
+            joinRoom() {
+                this.playerName = document.getElementById('input-player-name').value.trim() || "Cinefilo" + Math.floor(Math.random() * 900 + 100);
+                const code = document.getElementById('input-room-code').value.trim().toUpperCase();
+                if (!code) {
+                    this.showToast("Por favor, digite o código da sala!", "error");
+                    return;
+                }
+                this.roomCode = code;
+                this.isHost = false;
+
+                if (this.networkMode === 'peerjs') {
+                    this.initPeerJSGuest();
+                } else {
+                    this.initPythonSocketGuest();
+                }
+            }
+
+            // Start Solo Training Game
+            startSoloGame() {
+                this.playerName = document.getElementById('input-player-name').value.trim() || "CinefiloSolo";
+                this.roomCode = "SOLO";
+                this.isHost = true;
+                this.players = [{ id: 'solo', name: this.playerName, score: 0, isHost: true }];
+                this.settings = { timePerRound: 25, totalRounds: 5 };
+                this.currentRound = 0;
+                this.usedQuoteIds.clear();
+                
+                this.showScreen('screen-game');
+                this.startNextRound();
+            }
+
+            // Initialize PeerJS Host Mode
+            initPeerJSHost() {
+                const peerId = `cinequote-${this.roomCode.toLowerCase()}`;
+                this.peer = new Peer(peerId);
+
+                this.peer.on('open', (id) => {
+                    console.log("PeerJS Host aberto com ID:", id);
                 });
-            });
 
-            document.getElementById('btn-copy-python-code').addEventListener('click', () => {
-                const code = document.getElementById('code-python-server').textContent;
-                const tempInput = document.createElement('textarea');
-                tempInput.value = code;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempInput);
-                showToast('Código Python copiado!');
-            });
+                this.peer.on('connection', (conn) => {
+                    this.connections.push(conn);
+
+                    conn.on('data', (data) => {
+                        this.handlePeerData(data, conn);
+                    });
+
+                    conn.on('close', () => {
+                        this.players = this.players.filter(p => p.id !== conn.peer);
+                        this.broadcastPeerData({ type: 'PLAYER_LIST', players: this.players });
+                        this.updateLobbyUI();
+                    });
+                });
+
+                this.peer.on('error', (err) => {
+                    console.error("Erro no PeerJS Host:", err);
+                    if (err.type === 'unavailable-id') {
+                        this.showToast("Código de sala em uso! Gerando novo código...", "info");
+                        this.createRoom();
+                    }
+                });
+            }
+
+            // Initialize PeerJS Guest Mode
+            initPeerJSGuest() {
+                this.peer = new Peer();
+                const hostPeerId = `cinequote-${this.roomCode.toLowerCase()}`;
+
+                this.peer.on('open', (id) => {
+                    this.hostConn = this.peer.connect(hostPeerId);
+
+                    this.hostConn.on('open', () => {
+                        // Send Join Message to Host
+                        this.hostConn.send({
+                            type: 'JOIN_REQUEST',
+                            player: { id: id, name: this.playerName, score: 0, isHost: false }
+                        });
+                        this.showScreen('screen-lobby');
+                        this.showToast("Conectado à sala com sucesso!");
+                    });
+
+                    this.hostConn.on('data', (data) => {
+                        this.handlePeerData(data, this.hostConn);
+                    });
+
+                    this.hostConn.on('error', (err) => {
+                        this.showToast("Erro ao conectar à sala. Verifique o código!", "error");
+                    });
+                });
+
+                this.peer.on('error', (err) => {
+                    this.showToast("Não foi possível conectar ao anfitrião. Código incorreto ou sala fechada.", "error");
+                });
+            }
+
+            // Handle Messages over WebRTC
+            handlePeerData(data, senderConn) {
+                switch (data.type) {
+                    case 'JOIN_REQUEST':
+                        if (this.isHost) {
+                            this.players.push(data.player);
+                            this.broadcastPeerData({ type: 'PLAYER_LIST', players: this.players, settings: this.settings });
+                            this.updateLobbyUI();
+                        }
+                        break;
+                    case 'PLAYER_LIST':
+                        this.players = data.players;
+                        if (data.settings) this.settings = data.settings;
+                        this.updateLobbyUI();
+                        this.updateLeaderboardUI();
+                        break;
+                    case 'CHAT':
+                        this.addChatMessage(data.sender, data.text);
+                        if (this.isHost) this.broadcastPeerData(data); // Re-broadcast to all guests
+                        break;
+                    case 'START_GAME':
+                        this.showScreen('screen-game');
+                        break;
+                    case 'NEW_ROUND':
+                        this.hasGuessedCorrectly = false;
+                        this.setupRoundUI(data.round, data.totalRounds, data.quote);
+                        this.startLocalTimer(data.timePerRound);
+                        break;
+                    case 'GUESS_SUBMIT':
+                        if (this.isHost) {
+                            this.processPlayerGuess(data.playerId, data.guessText);
+                        }
+                        break;
+                    case 'CORRECT_GUESS_ANNOUNCEMENT':
+                        this.addChatMessage("SISTEMA", `🎉 ${data.playerName} acertou o filme! (+${data.points} pts)`, "text-amber-400 font-bold");
+                        this.updateLeaderboardUI();
+                        audio.sfxCorrect();
+                        break;
+                    case 'GAME_OVER':
+                        this.showGameOverScreen(data.players);
+                        break;
+                }
+            }
+
+            broadcastPeerData(data) {
+                if (this.isHost) {
+                    this.connections.forEach(conn => {
+                        if (conn.open) conn.send(data);
+                    });
+                }
+            }
+
+            initPythonSocketHost() {
+                const url = document.getElementById('input-python-url').value.trim();
+                if (!url) {
+                    this.showToast("Insira a URL HTTPS do seu servidor Python!", "error");
+                    return;
+                }
+                this.socket = io(url);
+                this.socket.emit('create_room', { room: this.roomCode, player: { name: this.playerName, score: 0 } });
+                
+                this.socket.on('room_created', (data) => {
+                    this.showToast("Sala criada no servidor Python!");
+                });
+            }
+
+            initPythonSocketGuest() {
+                const url = document.getElementById('input-python-url').value.trim();
+                if (!url) {
+                    this.showToast("Insira a URL HTTPS do servidor Python!", "error");
+                    return;
+                }
+                this.socket = io(url);
+                this.socket.emit('join_room', { room: this.roomCode, player: { name: this.playerName, score: 0 } });
+                
+                this.socket.on('player_joined', (data) => {
+                    this.showScreen('screen-lobby');
+                    this.showToast("Conectado via Servidor Python!");
+                });
+
+                this.socket.on('error', (err) => {
+                    this.showToast(err.message, "error");
+                });
+            }
+
+            updateLobbyUI() {
+                document.getElementById('lobby-room-code').textContent = this.roomCode;
+                document.getElementById('lobby-player-count').textContent = this.players.length;
+
+                const list = document.getElementById('lobby-players-list');
+                list.innerHTML = "";
+
+                this.players.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = "p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-xs border border-amber-500/30">
+                                ${p.name.charAt(0).toUpperCase()}
+                            </div>
+                            <span class="text-xs font-bold text-slate-200">${p.name} ${p.isHost ? '<span class="text-[9px] px-1.5 py-0.5 bg-amber-500/20 text-amber-300 rounded border border-amber-500/30 ml-2">Host</span>' : ''}</span>
+                        </div>
+                        <span class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Pronto</span>
+                    `;
+                    list.appendChild(div);
+                });
+
+                // Host Controls Lock/Unlock
+                const btnStart = document.getElementById('btn-start-game');
+                const txtHostMsg = document.getElementById('txt-host-only-msg');
+                const selTime = document.getElementById('setting-round-time');
+                const selRounds = document.getElementById('setting-total-rounds');
+
+                if (this.isHost) {
+                    btnStart.disabled = false;
+                    txtHostMsg.textContent = "Você é o anfitrião. Clique em Iniciar quando todos estiverem prontos!";
+                    selTime.disabled = false;
+                    selRounds.disabled = false;
+                } else {
+                    btnStart.disabled = true;
+                    txtHostMsg.textContent = "Aguardando o anfitrião iniciar a partida...";
+                    selTime.disabled = true;
+                    selRounds.disabled = true;
+                }
+            }
+
+            updateRoomSettings() {
+                if (!this.isHost) return;
+                this.settings.timePerRound = parseInt(document.getElementById('setting-round-time').value);
+                this.settings.totalRounds = parseInt(document.getElementById('setting-total-rounds').value);
+                this.broadcastPeerData({ type: 'PLAYER_LIST', players: this.players, settings: this.settings });
+            }
+
+            copyRoomLink() {
+                const link = `${window.location.origin}${window.location.pathname}?room=${this.roomCode}`;
+                navigator.clipboard.writeText(link).then(() => {
+                    this.showToast("Link de convite copiado para a área de transferência!");
+                }).catch(() => {
+                    document.execCommand('copy');
+                    this.showToast("Link copiado!");
+                });
+            }
+
+            leaveRoom() {
+                if (this.peer) this.peer.destroy();
+                if (this.socket) this.socket.disconnect();
+                this.showScreen('screen-landing');
+                this.showToast("Você saiu da sala.", "info");
+            }
+
+            requestStartGame() {
+                if (!this.isHost) return;
+                this.currentRound = 0;
+                this.usedQuoteIds.clear();
+                
+                // Reset Scores
+                this.players.forEach(p => p.score = 0);
+
+                this.broadcastPeerData({ type: 'START_GAME' });
+                this.showScreen('screen-game');
+                this.startNextRound();
+            }
+
+            startNextRound() {
+                if (!this.isHost) return;
+
+                this.currentRound++;
+                if (this.currentRound > this.settings.totalRounds) {
+                    // Game Complete
+                    this.broadcastPeerData({ type: 'GAME_OVER', players: this.players });
+                    this.showGameOverScreen(this.players);
+                    return;
+                }
+
+                // Pick unused random quote from MOVIE_DATABASE
+                let available = MOVIE_DATABASE.filter(q => !this.usedQuoteIds.has(q.id));
+                if (available.length === 0) {
+                    this.usedQuoteIds.clear();
+                    available = MOVIE_DATABASE;
+                }
+                const selected = available[Math.floor(Math.random() * available.length)];
+                this.usedQuoteIds.add(selected.id);
+                this.currentQuote = selected;
+
+                const roundData = {
+                    type: 'NEW_ROUND',
+                    round: this.currentRound,
+                    totalRounds: this.settings.totalRounds,
+                    timePerRound: this.settings.timePerRound,
+                    quote: {
+                        id: selected.id,
+                        quote: selected.quote,
+                        year: selected.year,
+                        genre: selected.genre,
+                        director: selected.director,
+                        stars: selected.stars,
+                        titleMask: this.maskTitle(selected.title)
+                    }
+                };
+
+                this.hasGuessedCorrectly = false;
+                this.setupRoundUI(roundData.round, roundData.totalRounds, roundData.quote);
+                this.startLocalTimer(this.settings.timePerRound);
+                this.broadcastPeerData(roundData);
+            }
+
+            maskTitle(title) {
+                return title.replace(/[a-zA-Z0-9]/g, '_ ');
+            }
+
+            setupRoundUI(round, totalRounds, quote) {
+                document.getElementById('game-current-round').textContent = round;
+                document.getElementById('game-total-rounds').textContent = totalRounds;
+                document.getElementById('game-quote-id').textContent = String(quote.id).padStart(2, '0');
+                document.getElementById('game-quote-text').textContent = `"${quote.quote}"`;
+
+                // Hints Reset
+                document.getElementById('hint-text-1').textContent = "Aguarde Dica 1...";
+                document.getElementById('hint-text-2').textContent = "Aguarde Dica 2...";
+                document.getElementById('hint-text-3').textContent = "Aguarde Dica 3...";
+
+                // Input Box Reset
+                const inputGuess = document.getElementById('input-guess');
+                const btnSubmit = document.getElementById('btn-submit-guess');
+                inputGuess.value = "";
+                inputGuess.disabled = false;
+                btnSubmit.disabled = false;
+                document.getElementById('guess-feedback').textContent = "";
+
+                this.currentQuote = quote;
+                this.updateLeaderboardUI();
+            }
+
+            startLocalTimer(durationSeconds) {
+                clearInterval(this.timerInterval);
+                this.timeLeft = durationSeconds;
+
+                const timerSecondsEl = document.getElementById('game-timer-seconds');
+                const ringEl = document.getElementById('timer-progress-ring');
+
+                const total = durationSeconds;
+
+                this.timerInterval = setInterval(() => {
+                    this.timeLeft--;
+                    timerSecondsEl.textContent = this.timeLeft;
+
+                    // Update SVG Progress Ring
+                    const offset = 100 - (this.timeLeft / total) * 100;
+                    ringEl.style.strokeDashoffset = offset;
+
+                    if (this.timeLeft <= 5 && this.timeLeft > 0) {
+                        audio.sfxTick();
+                    }
+
+                    // Progressive Hints Unlock Schedule
+                    if (this.timeLeft === Math.floor(total * 0.7)) {
+                        document.getElementById('hint-text-1').textContent = `${this.currentQuote.year} • ${this.currentQuote.genre}`;
+                    } else if (this.timeLeft === Math.floor(total * 0.4)) {
+                        document.getElementById('hint-text-2').textContent = `Direção: ${this.currentQuote.director}`;
+                    } else if (this.timeLeft === Math.floor(total * 0.2)) {
+                        document.getElementById('hint-text-3').textContent = `Máscara: ${this.currentQuote.titleMask}`;
+                    }
+
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timerInterval);
+                        if (this.isHost) {
+                            this.addChatMessage("SISTEMA", `⏳ Tempo esgotado! O filme era "${this.currentQuote.title || 'Desconhecido'}".`, "text-amber-300 font-semibold");
+                            setTimeout(() => this.startNextRound(), 3000);
+                        }
+                    }
+                }, 1000);
+            }
+
+            // Normalizes string by lowering case, removing accents & punctuation for fair answer evaluation
+            normalizeText(text) {
+                return text.toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-z0-9 ]/g, "")
+                    .trim();
+            }
+
+            submitGuess(e) {
+                e.preventDefault();
+                const input = document.getElementById('input-guess');
+                const text = input.value.trim();
+                if (!text || this.hasGuessedCorrectly) return;
+
+                if (this.isHost) {
+                    this.processPlayerGuess('host', text);
+                } else {
+                    this.hostConn.send({
+                        type: 'GUESS_SUBMIT',
+                        playerId: this.peer.id,
+                        guessText: text
+                    });
+                }
+
+                input.value = "";
+            }
+
+            processPlayerGuess(playerId, guessText) {
+                if (!this.currentQuote) return;
+
+                const normUser = this.normalizeText(guessText);
+                const normOfficial = this.normalizeText(this.currentQuote.title || "");
+                
+                let isCorrect = (normUser === normOfficial);
+
+                // Check against list of accepted alias titles
+                if (!isCorrect && this.currentQuote.aliases) {
+                    isCorrect = this.currentQuote.aliases.some(alias => this.normalizeText(alias) === normUser);
+                }
+
+                const player = this.players.find(p => p.id === playerId || (playerId === 'host' && p.isHost) || (playerId === 'solo' && p.id === 'solo'));
+                const playerName = player ? player.name : "Jogador";
+
+                if (isCorrect) {
+                    // Calculate dynamic score bonus based on remaining speed
+                    const points = 100 + (this.timeLeft * 10);
+                    if (player) player.score += points;
+
+                    const announcement = {
+                        type: 'CORRECT_GUESS_ANNOUNCEMENT',
+                        playerName: playerName,
+                        points: points,
+                        players: this.players
+                    };
+
+                    this.addChatMessage("SISTEMA", `🎉 ${playerName} acertou o filme! (+${points} pts)`, "text-amber-400 font-bold");
+                    this.updateLeaderboardUI();
+                    this.broadcastPeerData(announcement);
+                    audio.sfxCorrect();
+
+                    // If solo or host, trigger immediate next round after short delay
+                    if (this.isHost) {
+                        clearInterval(this.timerInterval);
+                        setTimeout(() => this.startNextRound(), 2500);
+                    }
+                } else {
+                    this.addChatMessage(playerName, `Chutou: "${guessText}" (Incorreto)`, "text-slate-500");
+                    audio.sfxWrong();
+                }
+            }
+
+            updateLeaderboardUI() {
+                const list = document.getElementById('game-leaderboard-list');
+                list.innerHTML = "";
+
+                const sorted = [...this.players].sort((a, b) => b.score - a.score);
+
+                sorted.forEach((p, idx) => {
+                    const div = document.createElement('div');
+                    div.className = "p-2.5 bg-slate-900 rounded-lg border border-slate-800 flex items-center justify-between text-xs";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-amber-500 w-4">#${idx + 1}</span>
+                            <span class="font-semibold text-slate-200">${p.name}</span>
+                        </div>
+                        <span class="font-mono font-bold text-amber-400">${p.score} pts</span>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+
+            sendChatMessage(e) {
+                e.preventDefault();
+                const input = document.getElementById('input-chat');
+                const text = input.value.trim();
+                if (!text) return;
+
+                const msgData = {
+                    type: 'CHAT',
+                    sender: this.playerName,
+                    text: text
+                };
+
+                this.addChatMessage(this.playerName, text);
+
+                if (this.isHost) {
+                    this.broadcastPeerData(msgData);
+                } else if (this.hostConn) {
+                    this.hostConn.send(msgData);
+                }
+
+                input.value = "";
+            }
+
+            addChatMessage(sender, text, customClass = "text-slate-300") {
+                const chatBox = document.getElementById('game-chat-messages');
+                const msgEl = document.createElement('div');
+                msgEl.className = "text-[11px] leading-relaxed";
+                msgEl.innerHTML = `<strong class="text-amber-400">${sender}:</strong> <span class="${customClass}">${text}</span>`;
+                chatBox.appendChild(msgEl);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+
+            showGameOverScreen(finalPlayers) {
+                audio.sfxWin();
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                }
+
+                this.showScreen('screen-results');
+                const podium = document.getElementById('results-podium');
+                podium.innerHTML = "";
+
+                const sorted = [...finalPlayers].sort((a, b) => b.score - a.score);
+
+                sorted.forEach((p, idx) => {
+                    const medals = ['🥇', '🥈', '🥉'];
+                    const medal = medals[idx] || '🎬';
+                    const div = document.createElement('div');
+                    div.className = "p-4 bg-slate-900 rounded-xl border border-amber-500/30 flex items-center justify-between";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${medal}</span>
+                            <span class="font-cinzel font-bold text-slate-100 text-sm">${p.name}</span>
+                        </div>
+                        <span class="font-mono font-black text-amber-400 text-base">${p.score} PTS</span>
+                    `;
+                    podium.appendChild(div);
+                });
+            }
+
+            returnToLobby() {
+                if (this.isHost) {
+                    this.showScreen('screen-lobby');
+                } else {
+                    this.showScreen('screen-lobby');
+                }
+            }
+        }
+
+        let app;
+        window.addEventListener('DOMContentLoaded', () => {
+            app = new CineQuoteApp();
+            app.init();
         });
     </script>
 </body>
